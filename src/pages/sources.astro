@@ -1,0 +1,52 @@
+---
+import Base from '../layouts/Base.astro';
+import sources from '../data/sources.json';
+
+const statusTag: Record<string, { cls: string; label: string }> = {
+  verified: { cls: 'tag success', label: 'Verified' },
+  check: { cls: 'tag warning', label: 'Check freshness' },
+  listed: { cls: 'tag', label: 'Listed' },
+  search: { cls: 'tag default', label: 'Search only' }
+};
+---
+<Base title="Sources" description="Curated oil & gas news sources, RSS feeds and Kuwait/GCC tender channels.">
+  <header class="page-head">
+    <div class="eyebrow">Sources</div>
+    <h1>News sources & tender channels</h1>
+    <p class="lede">What the weekly agent reads. Feeds marked "Listed" came from aggregators and have not been re-validated.</p>
+  </header>
+
+  <h2>Curated sources</h2>
+  <div class="scroll-x table-wrap">
+    <table>
+      <thead><tr><th>Source</th><th>RSS</th><th>Status</th><th>Note</th></tr></thead>
+      <tbody>
+        {sources.feeds.map((s) => (
+          <tr>
+            <td>{s.site ? <a href={s.site} rel="noopener">{s.name}</a> : s.name}</td>
+            <td>{s.rss.length ? s.rss.map((r, i) => <><a href={r} rel="noopener">{r.replace(/^https?:\/\/(www\.)?/, '').slice(0, 48)}{r.length > 56 ? '…' : ''}</a>{i < s.rss.length - 1 && <br />}</>) : <span class="muted">—</span>}</td>
+            <td><span class={statusTag[s.status].cls}>{statusTag[s.status].label}</span></td>
+            <td>{s.note}{s.ref && <> (<a href={s.ref} rel="noopener">ref</a>)</>}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <div class="callout gap"><p><strong>Gap.</strong> {sources.feedGaps}</p></div>
+
+  <h2>Kuwait / GCC tender channels</h2>
+  <div class="grid">
+    {sources.tenderChannels.map((t) => (
+      <section class="panel card">
+        <h3 class="card-title">{t.url ? <a href={t.url} rel="noopener">{t.name}</a> : t.name}</h3>
+        <div class="card-body small">{t.note}</div>
+        {(t.ref || t.ref2) && (
+          <div class="card-footer">
+            {t.ref && <a href={t.ref} rel="noopener">{t.refLabel ?? 'Source'}</a>}
+            {t.ref2 && <> · <a href={t.ref2} rel="noopener">{t.ref2Label}</a></>}
+          </div>
+        )}
+      </section>
+    ))}
+  </div>
+</Base>

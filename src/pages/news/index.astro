@@ -1,0 +1,15 @@
+---
+import Base from '../../layouts/Base.astro';
+import NewsWeek from '../../components/NewsWeek.astro';
+import { newsByWeek } from '../../lib/news';
+
+const { weeks, byWeek } = await newsByWeek();
+const latest = weeks[0];
+---
+<Base title="News" description="Weekly curated oil & gas digital and Kuwait tender news.">
+  {latest ? (
+    <NewsWeek week={latest} items={byWeek.get(latest) ?? []} weeks={weeks} />
+  ) : (
+    <div class="callout info"><p>No news yet. The weekly agent adds items every Monday.</p></div>
+  )}
+</Base>

@@ -1,0 +1,9 @@
+---
+interface Props {
+  intent?: 'default' | 'primary' | 'success' | 'warning' | 'danger';
+}
+// Always render text inside the tag: status is never communicated by colour alone.
+const { intent = 'primary' } = Astro.props;
+const cls = intent === 'primary' ? 'tag' : `tag ${intent}`;
+---
+<span class={cls}><slot /></span>

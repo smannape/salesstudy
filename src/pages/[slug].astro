@@ -1,0 +1,59 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Card from '../components/Card.astro';
+import { formatDate } from '../lib/dates';
+
+export async function getStaticPaths() {
+  const pages = (await getCollection('pages')).sort((a, b) => a.data.order - b.data.order);
+  return pages.map((page, i) => ({
+    params: { slug: page.data.slug },
+    props: { page, prev: pages[i - 1], next: pages[i + 1] }
+  }));
+}
+
+const { page, prev, next } = Astro.props;
+const { Content, headings } = await render(page);
+const toc = headings.filter((h) => h.depth === 2);
+const p = page.data;
+---
+<Base title={p.title} description={p.summary}>
+  <div class="workbench">
+    <article>
+      <header class="page-head">
+        <div class="eyebrow">Learn · {String(p.order).padStart(2, '0')}</div>
+        <h1>{p.title}</h1>
+        <p class="lede">{p.summary}</p>
+        <div class="meta-row">
+          {p.readMinutes && <span class="tag default num">{p.readMinutes} min read</span>}
+          <span class="tag default">Updated <time datetime={p.updated}>{formatDate(p.updated)}</time></span>
+          {p.tags.map((t) => <span class="tag">{t}</span>)}
+        </div>
+      </header>
+      <div class="running-text">
+        <Content />
+      </div>
+      <nav class="grid tight" aria-label="Pager" style="margin-top:32px">
+        {prev && <Card href={`/${prev.data.slug}/`} eyebrow="Previous" title={prev.data.title} />}
+        {next && <Card href={`/${next.data.slug}/`} eyebrow="Next" title={next.data.title} />}
+      </nav>
+    </article>
+    <aside class="rail rail-first">
+      {toc.length > 0 && (
+        <nav class="panel toc" aria-label="On this page">
+          <div class="eyebrow">On this page</div>
+          <ol>{toc.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}</ol>
+        </nav>
+      )}
+      <div class="panel rail-related">
+        <div class="eyebrow">Related</div>
+        <ul class="link-list small">
+          <li><a href="/metrics/">MEDDPICC scorer</a></li>
+          <li><a href="/target-a-client/">Whitespace matrix</a></li>
+          <li><a href="/news/">This week's news</a></li>
+          <li><a href="/search/">Search all pages</a></li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+</Base>

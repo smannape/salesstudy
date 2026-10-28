@@ -1,0 +1,20 @@
+---
+interface Props {
+  label: string;
+  value: string;
+  note?: string;
+  formula?: string;
+  source?: { href: string; label: string };
+  indicative?: boolean;
+}
+const { label, value, note, formula, source, indicative = false } = Astro.props;
+---
+<div class="kpi">
+  <div class="eyebrow">{label}</div>
+  {formula && <div class="kpi-formula"><code>{formula}</code></div>}
+  <div class="kpi-value num">{value}</div>
+  <div class="kpi-note">
+    {indicative && <span class="tag warning">indicative</span>} {note}
+    {source && <> <a href={source.href} rel="noopener">{source.label}</a></>}
+  </div>
+</div>

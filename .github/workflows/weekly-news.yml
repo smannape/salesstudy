@@ -1,0 +1,53 @@
+name: Weekly AI news update
+on:
+  schedule:
+    - cron: "17 4 * * 1"   # Mondays 04:17 UTC — off the hour to avoid GitHub high-load drops
+  workflow_dispatch:
+concurrency:
+  group: weekly-news
+  cancel-in-progress: false
+jobs:
+  update-news:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+      # The agent runs `npm run validate`, which needs dependencies installed.
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Git identity for the agent's commit
+        run: |
+          git config user.name "sales-hub-news-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: "/weekly-news"   # skill in .claude/skills/weekly-news/SKILL.md
+          # `git push` is deliberately NOT allowed: the agent commits, then the gates below
+          # re-validate and build before the workflow itself pushes to main.
+          claude_args: |
+            --model claude-sonnet-5-5
+            --max-turns 40
+            --max-budget-usd 3
+            --allowedTools "WebSearch,WebFetch(domain:*),Read,Write,Edit,Bash(git add *),Bash(git commit *),Bash(npm run validate *),Bash(npm run validate)"
+      - name: Gate — validate archive
+        run: npm run validate
+      - name: Gate — build site
+        run: npm run build
+      - name: Push agent commit to main
+        run: |
+          if [ -n "$(git log origin/main..HEAD --oneline 2>/dev/null)" ]; then
+            git log origin/main..HEAD --oneline
+            git push origin HEAD:main
+          else
+            echo "No new news commit this week."
+          fi

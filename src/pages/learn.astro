@@ -1,0 +1,22 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Card from '../components/Card.astro';
+
+const pages = (await getCollection('pages')).sort((a, b) => a.data.order - b.data.order);
+const total = pages.reduce((n, p) => n + (p.data.readMinutes ?? 0), 0);
+---
+<Base title="Learn">
+  <header class="page-head">
+    <div class="eyebrow">Learn</div>
+    <h1>Reference pages</h1>
+    <p class="lede">Eleven dense pages on enterprise-software and OFS selling to Gulf NOCs. About <span class="num">{total}</span> minutes in total — read one card a day.</p>
+  </header>
+  <div class="grid">
+    {pages.map((p) => (
+      <Card href={`/${p.data.slug}/`} eyebrow={`${String(p.data.order).padStart(2, '0')} · ${p.data.readMinutes ?? '–'} min`} title={p.data.title}>
+        <span class="muted">{p.data.summary}</span>
+      </Card>
+    ))}
+  </div>
+</Base>

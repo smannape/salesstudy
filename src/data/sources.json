@@ -1,0 +1,29 @@
+{
+  "feeds": [
+    { "name": "SPE / JPT", "site": "https://jpt.spe.org", "rss": ["https://jpt.spe.org/spe-news-feed.rss", "https://jpt.spe.org/speorg-technical-section-editorial.rss"], "status": "verified", "note": "Validated RSS 2.0, items dated Oct 2026", "ref": "https://jpt.spe.org/spe-news-feed.rss" },
+    { "name": "S&P Global Energy", "site": "https://www.spglobal.com/energy", "rss": ["https://www.spglobal.com/energy/en/rss/oil", "https://www.spglobal.com/energy/en/rss/natural-gas", "https://www.spglobal.com/energy/en/rss/lng", "https://www.spglobal.com/energy/en/rss/energy-transition", "https://www.spglobal.com/energy/en/rss/blog"], "status": "check", "note": "14 feeds; verified structure but fetched copy showed Nov 2023 items — confirm freshness", "ref": "https://www.spglobal.com/energy/en/rss" },
+    { "name": "Rigzone", "site": "https://www.rigzone.com/news/", "rss": ["https://www.rigzone.com/news/rss/rigzone_latest.aspx", "https://www.rigzone.com/news/rss/rigzone_headlines.aspx", "https://www.rigzone.com/news/rss/rigzone_production.aspx", "https://www.rigzone.com/news/rss/rigzone_operations.aspx", "https://www.rigzone.com/news/rss/rigzone_finance.aspx"], "status": "listed", "note": "From Feedspot, not re-validated", "ref": "https://rss.feedspot.com/rigzone_rss_feeds/" },
+    { "name": "OilPrice", "site": "https://oilprice.com", "rss": ["https://oilprice.com/rss/main"], "status": "listed", "note": "From Feedspot", "ref": "https://rss.feedspot.com/oil_and_gas_rss_feeds" },
+    { "name": "Energy Voice", "site": "https://www.energyvoice.com/category/oilandgas/", "rss": ["https://www.energyvoice.com/category/oilandgas/feed/"], "status": "listed", "note": "From Feedspot", "ref": "https://rss.feedspot.com/oil_and_gas_rss_feeds" },
+    { "name": "Oil & Gas Journal", "site": "https://www.ogj.com", "rss": ["https://www.ogj.com/__rss/website-scheduled-content.xml?input=%7B%22sectionAlias%22%3A%22home%22%7D"], "status": "listed", "note": "From Feedspot", "ref": "https://rss.feedspot.com/oilandgasjournal_rss_feeds/" },
+    { "name": "Oil & Gas IQ", "site": "https://www.oilandgasiq.com", "rss": ["https://www.oilandgasiq.com/rss/categories/oil-gas"], "status": "listed", "note": "Listed" },
+    { "name": "JODI", "site": "https://www.jodidata.org", "rss": ["https://www.jodidata.org/rss/feed.aspx?f=all"], "status": "listed", "note": "Listed" },
+    { "name": "World Oil", "site": "https://worldoil.com/news/", "rss": [], "status": "search", "note": "No feed found" },
+    { "name": "Upstream Online", "site": "https://www.upstreamonline.com", "rss": [], "status": "search", "note": "No native feed; scraper via Newsloth", "ref": "https://newsloth.com/popular-rss-feeds/upstream-online-rss-feeds" },
+    { "name": "OPEC", "site": "https://www.opec.org", "rss": [], "status": "search", "note": "No native feed; scraped at feeder.co", "ref": "https://feeder.co/discover/0d0e639bcc/opec-org" },
+    { "name": "MEED", "site": "https://www.meed.com", "rss": [], "status": "search", "note": "No public feed (paywall)" },
+    { "name": "Zawya Projects", "site": "https://www.zawya.com/en/projects", "rss": [], "status": "search", "note": "No public feed" },
+    { "name": "Vendor newsrooms", "site": "", "rss": [], "status": "search", "note": "SLB, Halliburton Landmark, Baker Hughes, AVEVA, AspenTech, Emerson, Kongsberg Digital, Palantir — feeds not researched" },
+    { "name": "KOC / KPC newsrooms", "site": "", "rss": [], "status": "search", "note": "No feed found" }
+  ],
+  "feedGaps": "Reuters Energy, Hart Energy and Offshore Magazine feeds not found; direct curl checks were proxy-blocked, so only SPE and S&P were validated live.",
+  "tenderChannels": [
+    { "name": "CAPT portal", "url": "https://www.capt.gov.kw/", "note": "Tenders with documents; no API/feed; KPC subsidiaries run procurement separately.", "ref": "https://openopps.com/sources/kuwait-capt/", "refLabel": "OpenOpps CAPT" },
+    { "name": "KPC K-Tender portal", "url": "", "note": "Launched April 2024 (URL not confirmed from a primary KPC source); centralises subsidiary tenders. MEED (Feb 2026) reports CAPT excluded from a planned $3.3bn gas-processing tender and large G2G direct awards; CAPT seen as a delay cause.", "ref": "https://guest.meed.com/regulatory-environment-shifting-for-kuwait-oil-and-gas-tenders/", "refLabel": "MEED", "ref2": "https://www.ice.it/it/news/notizie-dal-mondo/261900", "ref2Label": "ITA/ice.it" },
+    { "name": "Kuwait al-Youm (official gazette)", "url": "", "note": "Carries oil-sector tenders (e.g. KPC cybersecurity platform tender, Nov 2025).", "ref": "https://www.zawya.com/en/projects/oil-and-gas/kuwait-oil-sector-issues-multiple-tenders-for-supplies-and-services-yhf4y0d4", "refLabel": "Zawya Projects" },
+    { "name": "MEED Kuwait tender stories", "url": "https://guest.meed.com/kuwait-tenders-upstream-projects-worth-21bn", "note": "Editorial tracker: $2.1bn upstream tenders; deadline push-backs; cancellation talks.", "ref": "https://www.meed.com/kuwait-pushes-back-deadlines-for-oil-projects-worth-more-than-23bn", "refLabel": "MEED deadlines", "ref2": "https://guest.meed.com/kuwait-discusses-cancellation-of-oil-project-tenders-worth-87bn", "ref2Label": "MEED cancellation" },
+    { "name": "Gulf Construction tenders", "url": "https://gulfconstructiononline.com/Article/1627254/Tenders", "note": "Editorial tender tracker." },
+    { "name": "OGN tenders", "url": "https://ognnews.com/Article/43410/Tenders", "note": "Editorial tender tracker." },
+    { "name": "KNPC local-content PDFs", "url": "https://www.knpc.com/KNPC/media/PDFs/Local%20Content/2026%D8%B1%D9%88%D8%A7%D8%A8%D8%B7-%D8%B0%D8%A7%D8%AA-%D8%B5%D9%84%D9%87-5.pdf", "note": "Local-content reference documents." }
+  ]
+}

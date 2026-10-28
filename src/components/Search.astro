@@ -1,0 +1,58 @@
+---
+// Client-side search over /search-index.json (built at build time). No external service.
+---
+<div class="search" data-search>
+  <label class="eyebrow" for="q">Search pages, headings, tags and news</label>
+  <input id="q" class="search-input" type="search" placeholder="e.g. MEDDPICC, ICV, POC, KOC" autocomplete="off" enterkeyhint="search" style="margin-top:6px" />
+  <p class="small muted" data-status aria-live="polite" style="margin:8px 0 0"></p>
+  <ul class="results" data-results></ul>
+</div>
+
+<script>
+  type Doc = { type: string; url: string; title: string; headings: string[]; tags: string[]; text: string };
+  const root = document.querySelector<HTMLElement>('[data-search]')!;
+  const input = root.querySelector<HTMLInputElement>('input')!;
+  const status = root.querySelector<HTMLElement>('[data-status]')!;
+  const list = root.querySelector<HTMLElement>('[data-results]')!;
+  let docs: Doc[] = [];
+
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+  const mark = (s: string, terms: string[]) => {
+    let out = esc(s);
+    terms.forEach((t) => { if (t.length > 1) out = out.replace(new RegExp(`(${t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'), '<mark>$1</mark>'); });
+    return out;
+  };
+
+  const run = () => {
+    const q = input.value.trim().toLowerCase();
+    const terms = q.split(/\s+/).filter(Boolean);
+    try { history.replaceState(null, '', q ? `?q=${encodeURIComponent(q)}` : location.pathname); } catch {}
+    if (!terms.length) { list.innerHTML = ''; status.textContent = `${docs.length} documents indexed.`; return; }
+    const scored = docs.map((d) => {
+      const title = d.title.toLowerCase(), heads = d.headings.join(' ').toLowerCase(), tags = d.tags.join(' ').toLowerCase(), text = d.text.toLowerCase();
+      let score = 0;
+      for (const t of terms) {
+        const s = (title.includes(t) ? 10 : 0) + (tags.includes(t) ? 6 : 0) + (heads.includes(t) ? 4 : 0) + (text.includes(t) ? 1 : 0);
+        if (!s) return { d, score: 0, hit: '' };
+        score += s;
+      }
+      const hit = d.headings.find((h) => terms.some((t) => h.toLowerCase().includes(t))) ?? '';
+      return { d, score, hit };
+    }).filter((r) => r.score > 0).sort((a, b) => b.score - a.score).slice(0, 30);
+    status.textContent = `${scored.length} result${scored.length === 1 ? '' : 's'}`;
+    list.innerHTML = scored.map(({ d, hit }) => `
+      <li><a href="${d.url}">
+        <div class="r-title">${mark(d.title, terms)} <span class="tag ${d.type === 'news' ? 'warning' : 'default'}">${d.type}</span></div>
+        ${hit ? `<div class="small muted">§ ${mark(hit, terms)}</div>` : ''}
+        <div class="r-snip">${mark(d.text, terms)}…</div>
+      </a></li>`).join('');
+  };
+
+  fetch('/search-index.json').then((r) => r.json()).then((data: Doc[]) => {
+    docs = data;
+    const q = new URLSearchParams(location.search).get('q');
+    if (q) input.value = q;
+    run();
+  }).catch(() => { status.textContent = 'Search index failed to load.'; });
+  input.addEventListener('input', run);
+</script>

@@ -1,0 +1,55 @@
+---
+import Base from '../layouts/Base.astro';
+import Card from '../components/Card.astro';
+import Tag from '../components/Tag.astro';
+import Kpi from '../components/Kpi.astro';
+import Checklist from '../components/Checklist.astro';
+import Collapsible from '../components/Collapsible.astro';
+
+const grays = ['--black', '--dg1', '--dg2', '--dg3', '--dg4', '--dg5', '--g1', '--g2', '--g3', '--g4', '--g5', '--lg1', '--lg2', '--lg3', '--lg4', '--lg5', '--white'];
+const intents = ['--blue2', '--blue3', '--blue5', '--green3', '--orange3', '--red3'];
+---
+<Base title="Styleguide">
+  <header class="page-head">
+    <div class="eyebrow">Styleguide</div>
+    <h1>Blueprint components</h1>
+    <p class="lede">Every component in the current theme. Use the theme toggle in the top bar to check both.</p>
+  </header>
+
+  <h2>Colour</h2>
+  <div class="grid tight" style="grid-template-columns:repeat(auto-fill,minmax(90px,1fr))">
+    {[...grays, ...intents].map((v) => <div><div class="swatch" style={`background:var(${v})`}></div><code>{v}</code></div>)}
+  </div>
+
+  <h2>Typography</h2>
+  <div class="panel">
+    <h1>Heading 1 · 28px</h1><h2 style="margin-top:0">Heading 2 · 20px</h2><h3>Heading 3 · 16px</h3>
+    <p class="running-text">Body 14px / 1.5 running text with a <a href="#">link</a> and <code>inline code</code>. Figures use <span class="num">tabular 1,234.56</span>.</p>
+    <p class="eyebrow">Eyebrow label</p>
+  </div>
+
+  <h2>Tags</h2>
+  <div class="meta-row">
+    <Tag intent="default">default</Tag><Tag>primary</Tag><Tag intent="success">success</Tag><Tag intent="warning">indicative</Tag><Tag intent="danger">danger</Tag>
+  </div>
+
+  <h2>Cards & KPI</h2>
+  <div class="grid">
+    <Card eyebrow="Card" title="Card title">Body slot with dense reference text.<span slot="footer"><a href="#">Source link</a></span></Card>
+    <Kpi label="Win rate" formula="Won / (won + lost)" value="20–21%" note="B2B average; top performers 30%+" indicative source={{ href: 'https://www.hyperbound.ai/blog/b2b-sales-performance-benchmark-2025', label: 'Hyperbound' }} />
+  </div>
+
+  <h2>Checklist & collapsible</h2>
+  <div class="grid">
+    <div class="panel"><Checklist id="styleguide-demo" items={['Open with an up-front contract', 'Ask 11–14 questions', 'Leave with a written next step']} /></div>
+    <div><Collapsible summary="Collapsible question list"><ul><li>What key metrics are crucial?</li><li>Who has the final say?</li></ul></Collapsible></div>
+  </div>
+
+  <h2>Callouts & table</h2>
+  <div class="callout gap"><p><strong>Gap.</strong> Something the research could not confirm.</p></div>
+  <div class="callout info"><p>Informational callout.</p></div>
+  <div class="scroll-x table-wrap">
+    <table><thead><tr><th>Metric</th><th>Formula</th><th>Benchmark</th></tr></thead>
+      <tbody><tr><td>Pipeline coverage</td><td>Open pipeline / target</td><td class="num">3–5x</td></tr><tr><td>Win rate</td><td>Won / (won + lost)</td><td class="num">20–21%</td></tr></tbody></table>
+  </div>
+</Base>

@@ -1,0 +1,15 @@
+---
+import Base from '../../layouts/Base.astro';
+import NewsWeek from '../../components/NewsWeek.astro';
+import { newsByWeek } from '../../lib/news';
+
+export async function getStaticPaths() {
+  const { weeks, byWeek } = await newsByWeek();
+  return weeks.map((week) => ({ params: { week }, props: { week, items: byWeek.get(week) ?? [], weeks } }));
+}
+
+const { week, items, weeks } = Astro.props;
+---
+<Base title={`News ${week}`} description={`Curated oil & gas digital news for ${week}.`}>
+  <NewsWeek week={week} items={items} weeks={weeks} />
+</Base>

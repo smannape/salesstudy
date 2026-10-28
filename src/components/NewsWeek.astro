@@ -1,0 +1,67 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import NewsItem from './NewsItem.astro';
+import { weekLabel } from '../lib/dates';
+
+interface Props {
+  week: string;
+  items: CollectionEntry<'news'>[];
+  weeks: string[];
+}
+const { week, items, weeks } = Astro.props;
+// Relevance >= 4 pinned to the top, then newest publication first.
+const sorted = [...items].sort((a, b) => {
+  const pin = Number(b.data.relevance >= 4) - Number(a.data.relevance >= 4);
+  return pin || b.data.date.localeCompare(a.data.date) || b.data.relevance - a.data.relevance;
+});
+const tags = [...new Set(items.flatMap((i) => i.data.tags))].sort();
+const idx = weeks.indexOf(week);
+const newer = weeks[idx - 1];
+const older = weeks[idx + 1];
+---
+<div class="workbench">
+  <section>
+    <header class="page-head">
+      <div class="eyebrow">News · <span class="num">{week}</span></div>
+      <h1>Week of {weekLabel(week)}</h1>
+      <p class="lede"><span class="num">{items.length}</span> curated items on oil & gas digital, Gulf NOCs and Kuwait tenders. Relevance 4–5 is pinned first.</p>
+    </header>
+    {tags.length > 1 && (
+      <div class="chips" role="group" aria-label="Filter by tag" data-chips>
+        <button type="button" class="chip" aria-pressed="true" data-tag="">All</button>
+        {tags.map((t) => <button type="button" class="chip" aria-pressed="false" data-tag={t}>{t}</button>)}
+      </div>
+    )}
+    <div class="news-list">
+      {sorted.map((item) => <NewsItem item={item} />)}
+    </div>
+    <nav class="grid tight" aria-label="Weeks" style="margin-top:24px">
+      {newer && <a class="panel card" href={`/news/${newer}/`}><span class="eyebrow">Newer</span><span class="num">{newer}</span></a>}
+      {older && <a class="panel card" href={`/news/${older}/`}><span class="eyebrow">Older</span><span class="num">{older}</span></a>}
+    </nav>
+  </section>
+  <aside class="rail">
+    <nav class="panel toc" aria-label="Archive">
+      <div class="eyebrow">Archive</div>
+      <ol>{weeks.map((w) => <li><a href={`/news/${w}/`} class={w === week ? 'active num' : 'num'}>{w}</a></li>)}</ol>
+    </nav>
+    <div class="panel small">
+      <div class="eyebrow">Subscribe</div>
+      <p style="margin:6px 0 0"><a class="tap" href="/rss.xml">RSS feed</a> — latest 50 items. Updated weekly on Mondays.</p>
+    </div>
+  </aside>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-chips]').forEach((group) => {
+    const chips = Array.from(group.querySelectorAll<HTMLButtonElement>('.chip'));
+    const items = Array.from(document.querySelectorAll<HTMLElement>('.news-item'));
+    group.addEventListener('click', (e) => {
+      const chip = (e.target as HTMLElement).closest<HTMLButtonElement>('.chip');
+      if (!chip) return;
+      const tag = chip.dataset.tag ?? '';
+      chips.forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
+      items.forEach((it) => (it.hidden = !!tag && !(it.dataset.tags ?? '').split(' ').includes(tag)));
+    });
+  });
+</script>

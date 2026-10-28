@@ -1,0 +1,16 @@
+---
+// Renders items as a GFM-style task list; the global enhancer (src/scripts/enhance.ts)
+// adds per-page localStorage persistence and the reset button.
+interface Props {
+  id: string;
+  items: string[];
+}
+const { id, items } = Astro.props;
+---
+<div class="checklist" data-checklist={id}>
+  <ul class="contains-task-list">
+    {items.map((item) => (
+      <li class="task-list-item"><input type="checkbox" disabled /> <span set:html={item} /></li>
+    ))}
+  </ul>
+</div>

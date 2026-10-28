@@ -1,0 +1,61 @@
+/* Blueprint tokens — values from @blueprintjs/core 6.21.0 / @blueprintjs/colors 5.1.16 (see CLAUDE.md §3) */
+:root {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --fs-xs: 10px; --fs-sm: 12px; --fs-md: 14px; --fs-lg: 16px;
+  --fs-h-sm: 16px; --fs-h-md: 20px; --fs-h-lg: 24px; --fs-h-xl: 28px;
+  --lh: 1.28581; --lh-prose: 1.5; --fw: 400; --fw-bold: 600;
+  --sp: 4px; --radius: 4px; --navbar-h: 50px; --control-h: 30px;
+  --ease: cubic-bezier(0.4, 1, 0.75, 0.9); --dur: 100ms;
+  --black: #111418; --white: #ffffff;
+  --dg1: #1c2127; --dg2: #252a31; --dg3: #2f343c; --dg4: #383e47; --dg5: #404854;
+  --g1: #5f6b7c; --g2: #738091; --g3: #8f99a8; --g4: #abb3bf; --g5: #c5cbd3;
+  --lg1: #d3d8de; --lg2: #dce0e5; --lg3: #e5e8eb; --lg4: #edeff2; --lg5: #f6f7f9;
+  --blue2: #215db0; --blue3: #2d72d2; --blue5: #8abbff;
+  --green3: #238551; --orange3: #c87619; --red3: #cd4246;
+  /* light theme */
+  --bg: var(--lg5); --bg-2: var(--white); --bg-elev: var(--lg4);
+  --text: var(--dg1); --text-muted: var(--g1); --link: var(--blue2);
+  --border: rgba(17,20,24,.15); --border-muted: rgba(17,20,24,.10);
+  --shadow-1: 0 0 0 1px rgba(17,20,24,.10), 0 1px 3px 0 rgba(0,0,0,.10), 0 1px 2px -1px rgba(0,0,0,.10);
+  --code-bg: rgba(255,255,255,.7); --focus: rgba(33,93,176,.752);
+  --nav-bg: var(--white); --hover: rgba(143,153,168,.15);
+  --tag-fg: var(--blue2); --tag-success-fg: #1c6e42; --tag-warning-fg: #935610; --tag-danger-fg: #ac2f33;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: var(--dg1); --bg-2: var(--black); --bg-elev: var(--dg3);
+  --text: var(--lg5); --text-muted: var(--g4); --link: var(--blue5);
+  --border: rgba(255,255,255,.20); --border-muted: rgba(255,255,255,.10);
+  --shadow-1: inset 0 0 0 1px rgba(255,255,255,.20), 0 1px 10px 0 rgba(0,0,0,.20), 0 1px 10px -1px rgba(0,0,0,.20);
+  --code-bg: rgba(17,20,24,.3); --focus: rgba(138,187,255,.752);
+  --nav-bg: var(--dg2); --hover: rgba(143,153,168,.15);
+  --tag-fg: var(--blue5); --tag-success-fg: #72ca9b; --tag-warning-fg: #fbb360; --tag-danger-fg: #fa999c;
+} }
+:root[data-theme="dark"] {
+  --bg: var(--dg1); --bg-2: var(--black); --bg-elev: var(--dg3);
+  --text: var(--lg5); --text-muted: var(--g4); --link: var(--blue5);
+  --border: rgba(255,255,255,.20); --border-muted: rgba(255,255,255,.10);
+  --shadow-1: inset 0 0 0 1px rgba(255,255,255,.20), 0 1px 10px 0 rgba(0,0,0,.20), 0 1px 10px -1px rgba(0,0,0,.20);
+  --code-bg: rgba(17,20,24,.3); --focus: rgba(138,187,255,.752);
+  --nav-bg: var(--dg2); --hover: rgba(143,153,168,.15);
+  --tag-fg: var(--blue5); --tag-success-fg: #72ca9b; --tag-warning-fg: #fbb360; --tag-danger-fg: #fa999c;
+  color-scheme: dark;
+}
+:root[data-theme="light"] { color-scheme: light; }
+
+body { background: var(--bg); color: var(--text); font: var(--fw) var(--fs-md)/var(--lh) var(--font-sans); }
+
+/* Tags: plain rgba fallback first, then color-mix (Safari ≥16.2) */
+.tag { display:inline-flex; align-items:center; min-height:20px; padding:2px 6px; border-radius:var(--radius); font-size:var(--fs-sm); line-height:16px; white-space:nowrap; vertical-align:middle;
+  background: rgba(45,114,210,.2);
+  background: color-mix(in oklch, var(--blue3) 20%, transparent); color: var(--tag-fg); }
+.tag.success { background: rgba(35,133,81,.2); background: color-mix(in oklch, var(--green3) 20%, transparent); color: var(--tag-success-fg); }
+.tag.warning { background: rgba(200,118,25,.2); background: color-mix(in oklch, var(--orange3) 20%, transparent); color: var(--tag-warning-fg); }
+.tag.danger  { background: rgba(205,66,70,.2); background: color-mix(in oklch, var(--red3) 20%, transparent); color: var(--tag-danger-fg); }
+.tag.default { background: rgba(143,153,168,.2); background: color-mix(in oklch, var(--g3) 20%, transparent); color: var(--text-muted); }
+
+.panel { background: var(--bg-elev); border-radius: var(--radius); box-shadow: var(--shadow-1); padding: calc(var(--sp)*5); }
+.section-header { display:flex; align-items:center; justify-content:space-between; gap:20px; min-height:50px; padding:0 20px; border-bottom:1px solid var(--border); }
+.eyebrow { font-size: var(--fs-xs); letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
+.num { font-variant-numeric: tabular-nums; }
+code { font-family: var(--font-mono); font-size: 13px; background: var(--code-bg); box-shadow: inset 0 0 0 1px var(--border); border-radius: var(--radius); padding: 2px 4px; color: var(--text-muted); }

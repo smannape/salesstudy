@@ -1,0 +1,11 @@
+[
+  { "id": "spe-atce-2026", "name": "SPE ATCE 2026", "start": "2026-10-21", "end": "2026-10-23", "location": "Houston", "note": "Dates shown inconsistently as 21–24 elsewhere; verify on the ATCE save-the-date page.", "url": "https://www.atce.org/save-date", "ref": "https://inspenet.com/en/events/spe-atce-2026-exploration-and-production-technical-conference/" },
+  { "id": "adipec-2026", "name": "ADIPEC 2026", "start": "2026-11-02", "end": "2026-11-05", "location": "ADNEC, Abu Dhabi", "note": "Theme: \"Energy security is global security\".", "url": "", "ref": "https://esim.holafly.com/business/oil-gas-conferences/" },
+  { "id": "ons-2026", "name": "ONS 2026", "start": "2026-08-24", "end": "2026-08-27", "location": "Stavanger", "note": "", "url": "", "ref": "https://esim.holafly.com/business/oil-gas-conferences/" },
+  { "id": "appec-2026", "name": "APPEC 2026", "start": "2026-09-07", "end": "2026-09-10", "location": "Singapore", "note": "", "url": "", "ref": "https://esim.holafly.com/business/oil-gas-conferences/" },
+  { "id": "gastech-2026", "name": "Gastech 2026", "start": "2026-09-14", "end": "2026-09-17", "location": "Bangkok", "note": "", "url": "", "ref": "https://esim.holafly.com/business/oil-gas-conferences/" },
+  { "id": "spe-permian-2026", "name": "SPE Permian Basin 2026", "start": "2026-09-22", "end": "2026-09-24", "location": "Midland", "note": "", "url": "", "ref": "https://esim.holafly.com/business/oil-gas-conferences/" },
+  { "id": "kogs-tbc", "name": "Kuwait Oil & Gas Show (KOGS)", "start": null, "end": null, "location": "Kuwait", "note": "Placeholder — 2026/2027 dates not found; the weekly agent may fill this in.", "url": "", "ref": "" },
+  { "id": "opec-calendar-tbc", "name": "OPEC meeting calendar", "start": null, "end": null, "location": "", "note": "Placeholder — not found.", "url": "", "ref": "" },
+  { "id": "kuwait-budget-tbc", "name": "Kuwait budget calendar", "start": null, "end": null, "location": "Kuwait", "note": "Placeholder — not found.", "url": "", "ref": "" }
+]

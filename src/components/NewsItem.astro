@@ -1,0 +1,27 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { formatDate } from '../lib/dates';
+
+interface Props {
+  item: CollectionEntry<'news'>;
+  headingLevel?: 'h2' | 'h3';
+}
+const { item } = Astro.props;
+const n = item.data;
+const intent = n.relevance >= 5 ? 'danger' : n.relevance === 4 ? 'warning' : 'tag';
+const relClass = intent === 'tag' ? 'tag' : `tag ${intent}`;
+---
+<article class="panel news-item" id={n.id} data-tags={n.tags.join(' ')}>
+  <div class="news-meta">
+    <span class={relClass}>Relevance {n.relevance}/5</span>
+    <span>{n.source}</span>
+    <time datetime={n.date} class="num">{formatDate(n.date)}</time>
+    <a href={`/news/${n.weekOf}/#${n.id}`} aria-label="Permalink" class="num">#{n.id.slice(0, 6)}</a>
+  </div>
+  <h3><a href={n.url} rel="noopener" target="_blank">{n.title}</a></h3>
+  <p class="news-summary">{n.summary}</p>
+  {n.citedText && <blockquote>“{n.citedText}”</blockquote>}
+  <div class="meta-row">
+    {n.tags.map((t) => <span class="tag default">{t}</span>)}
+  </div>
+</article>

@@ -1,0 +1,119 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Card from '../components/Card.astro';
+import NewsItem from '../components/NewsItem.astro';
+import { extractCards } from '../lib/cards';
+import { newsByWeek } from '../lib/news';
+import { formatDate, weekLabel } from '../lib/dates';
+import events from '../data/events.json';
+
+const pages = (await getCollection('pages')).sort((a, b) => a.data.order - b.data.order);
+const cards = extractCards(pages);
+const { weeks, byWeek } = await newsByWeek();
+const latest = weeks[0];
+const latestItems = latest
+  ? [...(byWeek.get(latest) ?? [])].sort((a, b) => b.data.relevance - a.data.relevance || b.data.date.localeCompare(a.data.date)).slice(0, 5)
+  : [];
+const dated = events.filter((e) => e.start).sort((a, b) => a.start!.localeCompare(b.start!));
+---
+<Base title="Sales Hub">
+  <header class="page-head">
+    <div class="eyebrow">Today</div>
+    <h1>Ten minutes of selling, every day</h1>
+    <p class="lede">One reference card per day, rotated from <span class="num">{cards.length}</span> checklists and question lists across the eleven pages, plus this week's NOC digital news.</p>
+  </header>
+
+  <div class="workbench">
+    <div class="stack">
+      <section class="panel card" aria-labelledby="cotd-title" data-cotd>
+        <div class="section-header" style="margin:-20px -20px 8px;">
+          <span class="eyebrow">Card of the day · <span class="num" data-cotd-date></span></span>
+          <span class="meta-row" style="margin:0"><button type="button" class="btn small" data-cotd-prev aria-label="Previous card">‹</button><button type="button" class="btn small" data-cotd-next aria-label="Next card">›</button></span>
+        </div>
+        {cards.map((c, i) => (
+          <div data-card={i} hidden={i !== 0}>
+            <div class="meta-row"><span class={c.kind === 'Checklist' ? 'tag success' : 'tag'}>{c.kind}</span><a class="small tap" href={`/${c.page}/`}>{c.pageTitle}</a></div>
+            <h2 id={i === 0 ? 'cotd-title' : undefined} style="margin:6px 0 10px">{c.title}</h2>
+            <ol class="running-text" style="padding-left:22px;margin:0">
+              {c.items.map((it) => <li set:html={it} />)}
+            </ol>
+          </div>
+        ))}
+      </section>
+
+      <section>
+        <div class="section-header" style="padding:0">
+          <h2 style="margin:0">Latest news{latest && <span class="muted small" style="font-weight:400"> · {weekLabel(latest)}</span>}</h2>
+          <a href="/news/" class="small tap">All news →</a>
+        </div>
+        <div class="news-list" style="margin-top:12px">
+          {latestItems.length ? latestItems.map((n) => <NewsItem item={n} />) : <p class="muted">No news yet — the weekly agent runs on Mondays.</p>}
+        </div>
+      </section>
+    </div>
+
+    <aside class="rail">
+      <section class="panel" data-events>
+        <div class="eyebrow">Next event</div>
+        {dated.map((e) => (
+          <div data-event data-start={e.start} data-end={e.end} hidden>
+            <h3 style="margin:6px 0 4px">{e.url ? <a href={e.url} rel="noopener">{e.name}</a> : e.name}</h3>
+            <div class="small muted"><time datetime={e.start!} class="num">{formatDate(e.start!)}</time>–<span class="num">{formatDate(e.end!)}</span> · {e.location}</div>
+            <div class="kpi-value num" style="margin-top:8px" data-countdown></div>
+            {e.note && <p class="small muted" style="margin:6px 0 0">{e.note}</p>}
+            {e.ref && <p class="small" style="margin:6px 0 0"><a class="tap" href={e.ref} rel="noopener">Source</a></p>}
+          </div>
+        ))}
+        <p class="small muted" data-no-event hidden style="margin:6px 0 0">No dated events ahead. KOGS, OPEC and Kuwait budget dates are still placeholders.</p>
+      </section>
+      <nav class="panel toc hide-mobile" aria-label="Pages">
+        <div class="eyebrow">Learn</div>
+        <ol>{pages.map((p) => <li><a href={`/${p.data.slug}/`}><span class="num muted" style="width:22px;flex:none">{p.data.order}</span>{p.data.title}</a></li>)}</ol>
+      </nav>
+    </aside>
+  </div>
+
+  <h2>Quick links</h2>
+  <div class="grid tight">
+    {pages.map((p) => (
+      <Card href={`/${p.data.slug}/`} eyebrow={`${String(p.data.order).padStart(2, '0')} · ${p.data.readMinutes ?? '–'} min`} title={p.data.title} />
+    ))}
+    <Card href="/news/" eyebrow="12" title="News tracker" />
+  </div>
+</Base>
+
+<script>
+  // Day-of-year from integer parts only (no Date string parsing — Safari §4.8). ?date=YYYY-MM-DD overrides for testing.
+  const now = new Date();
+  let y = now.getFullYear(), m = now.getMonth() + 1, d = now.getDate();
+  const override = new URLSearchParams(location.search).get('date');
+  if (override && /^\d{4}-\d{2}-\d{2}$/.test(override)) [y, m, d] = override.split('-').map(Number);
+  const today = Date.UTC(y, m - 1, d);
+  const doy = Math.floor((today - Date.UTC(y, 0, 0)) / 86400000);
+
+  const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-card]'));
+  const dateEl = document.querySelector('[data-cotd-date]');
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  if (dateEl) dateEl.textContent = `${d} ${MONTHS[m - 1]} ${y} · day ${doy}`;
+  let current = cards.length ? doy % cards.length : 0;
+  const show = (i: number) => {
+    current = (i + cards.length) % cards.length;
+    cards.forEach((c, j) => (c.hidden = j !== current));
+  };
+  show(current);
+  document.querySelector('[data-cotd-prev]')?.addEventListener('click', () => show(current - 1));
+  document.querySelector('[data-cotd-next]')?.addEventListener('click', () => show(current + 1));
+
+  const toUtc = (iso: string) => { const [a, b, c] = iso.split('-').map(Number); return Date.UTC(a, b - 1, c); };
+  const evs = Array.from(document.querySelectorAll<HTMLElement>('[data-event]'));
+  const next = evs.find((e) => toUtc(e.dataset.end!) >= today);
+  if (next) {
+    next.hidden = false;
+    const days = Math.round((toUtc(next.dataset.start!) - today) / 86400000);
+    const out = next.querySelector('[data-countdown]');
+    if (out) out.textContent = days > 0 ? `in ${days} day${days === 1 ? '' : 's'}` : 'happening now';
+  } else {
+    document.querySelector<HTMLElement>('[data-no-event]')!.hidden = false;
+  }
+</script>
