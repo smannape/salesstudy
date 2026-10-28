@@ -1,0 +1,212 @@
+---
+// Hero for "How to increase software sales in E&P companies": waffle of the headline
+// stall statistics, a pilot-health balance (drivers vs blockers) and the route that scales.
+// All figures and items are taken from src/content/pages/increase-software-sales-ep.md.
+const stats = [
+  { key: 'mck', pct: 70, label: 'Stuck at pilot', note: 'of digitisation projects have not moved beyond pilot', src: 'McKinsey', href: 'https://www.mckinsey.com/capabilities/operations/our-insights/harnessing-volatility-technology-transformation-in-oil-and-gas' },
+  { key: 'bain', pct: 75, label: 'Fail to scale', note: 'of energy / natural-resources companies say digital fails to scale', src: 'Bain', href: 'https://www.bain.com/insights/scaling-digital-operations-in-energy-and-natural-resources/' },
+  { key: 'acn', pct: 7, label: 'Scaled AI', note: 'of energy organisations have scaled AI enterprise-wide', src: 'Accenture, Mar 2026', href: 'https://www.accenture.com/us-en/insights/energy/scaling-ai-upstream-energy' }
+];
+const drivers = [
+  'Named value hypothesis with baseline and shared KPI',
+  'Asset-level executive sponsor',
+  'Pilot inside one asset with a pre-agreed scaling vector',
+  'Data residency answered up front (private / sovereign cloud)',
+  'OSDU / open integration',
+  'Funded change resources past go-live'
+];
+const blockers = [
+  'Procurement separating software from services',
+  'AI trust gap',
+  'Job-security fear',
+  'Headcount-rewarding contracts',
+  'Frameworks where vendor efficiency cuts billable scope'
+];
+const route = [
+  { t: 'Agree the scaling vector', d: 'Which assets, which users, which KPI — agreed before the pilot starts.', s: 'Bain' },
+  { t: 'Pilot inside one asset', d: 'Small pilots in part of an asset are the format KOC found effective; KOC ran three digital-oilfield pilots.', s: 'JPT Kuwait workshop' },
+  { t: 'Publish value in NOC numbers', d: 'Share the KPI in the NOC’s own numbers — fewer than 20% of AI deployments track value and share the KPI.', s: 'OGJ / McKinsey' },
+  { t: 'Fund change past go-live', d: 'Change management is ≈50% of the effort in successful projects.', s: 'JPT' },
+  { t: 'Multi-year, multi-asset framework', d: 'PoC → multi-year multi-asset framework, not asset-by-asset re-tendering. AIQ–ADNOC: PoC, then a $340m 3-year award.', s: 'JPT' }
+];
+---
+<section class="viz ep-viz" aria-labelledby="ep-viz-title">
+  <div class="viz-head">
+    <h2 id="ep-viz-title">Why pilots stall — and the route that scales</h2>
+    <p class="viz-hint">Switch the statistic; tick drivers and blockers to tilt the balance; tap a step on the route.</p>
+  </div>
+
+  <div class="ep-grid">
+    <!-- Waffle -->
+    <div class="viz-stage ep-panel">
+      <div class="ep-cap"><span class="v-mono-html">01 · The pilot trap</span></div>
+      <div class="seg" role="group" aria-label="Statistic">
+        {stats.map((s, i) => <button type="button" data-stat={s.key} aria-pressed={i === 0 ? 'true' : 'false'}>{s.label}</button>)}
+      </div>
+      <div class="ep-waffle-wrap">
+        <div class="ep-waffle" aria-hidden="true">
+          {Array.from({ length: 100 }, (_, i) => <i data-i={i} class={i < stats[0].pct ? 'on' : ''}></i>)}
+        </div>
+        <div class="ep-waffle-out">
+          <b class="num" data-stat-pct>{stats[0].pct}%</b>
+          <p data-stat-note>{stats[0].note}</p>
+          <p class="ep-src">Source: <a data-stat-src href={stats[0].href} rel="noopener">{stats[0].src}</a></p>
+        </div>
+      </div>
+      <script type="application/json" data-stats set:html={JSON.stringify(stats)}></script>
+    </div>
+
+    <!-- Balance -->
+    <div class="viz-stage ep-panel">
+      <div class="ep-cap"><span class="v-mono-html">02 · Pilot health balance</span> <span class="tag">inference</span></div>
+      <svg viewBox="0 0 320 120" class="ep-beam" role="img" aria-label="Balance between drivers in place and blockers present">
+        <line x1="20" y1="112" x2="300" y2="112" class="v-grid" />
+        <polygon points="160,112 146,86 174,86" class="ep-fulcrum" />
+        <g class="ep-arm" data-arm>
+          <line x1="40" y1="84" x2="280" y2="84" class="ep-beamline" />
+          <rect x="22" y="56" width="58" height="28" class="ep-pan ep-pan-b" />
+          <text x="51" y="74" text-anchor="middle" class="v-mono" data-bcount>0 / 5</text>
+          <rect x="240" y="56" width="58" height="28" class="ep-pan ep-pan-d" />
+          <text x="269" y="74" text-anchor="middle" class="v-mono" data-dcount>0 / 6</text>
+        </g>
+        <text x="51" y="20" text-anchor="middle" class="v-mono">Blockers</text>
+        <text x="269" y="20" text-anchor="middle" class="v-mono">Drivers</text>
+      </svg>
+      <div class="ep-lists">
+        <fieldset>
+          <legend class="v-mono-html">Blockers present</legend>
+          {blockers.map((b, i) => <label class="ep-check b"><input type="checkbox" data-blocker={i} /> <span>{b}</span></label>)}
+        </fieldset>
+        <fieldset>
+          <legend class="v-mono-html">Drivers in place</legend>
+          {drivers.map((d, i) => <label class="ep-check d"><input type="checkbox" data-driver={i} /> <span>{d}</span></label>)}
+        </fieldset>
+      </div>
+      <p class="ep-verdict" data-verdict aria-live="polite">Tick what is true for your deal. Items are not weighted — the beam simply counts.</p>
+    </div>
+  </div>
+
+  <!-- Route -->
+  <div class="viz-stage ep-route-stage">
+    <div class="ep-cap"><span class="v-mono-html">03 · Pilot-to-scale route that works</span></div>
+    <ol class="ep-route">
+      {route.map((r, i) => (
+        <li style={`--step:${i}`}>
+          <button type="button" class="ep-step" data-step={i} aria-pressed="false">
+            <span class="v-mono-html">{String(i + 1).padStart(2, '0')}</span>
+            <b>{r.t}</b>
+          </button>
+        </li>
+      ))}
+    </ol>
+  </div>
+  {route.map((r, i) => (
+    <template data-step-tpl={i}><h3>{String(i + 1).padStart(2, '0')} · {r.t}</h3><p>{r.d}</p><p class="ep-src">Source: {r.s} (see the page notes below)</p></template>
+  ))}
+  <div class="viz-readout" aria-live="polite" data-readout>
+    <p>Tap a step on the route to see what it requires and where the evidence comes from.</p>
+  </div>
+</section>
+
+<style>
+  .ep-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .ep-grid > .ep-panel + .ep-panel { border-left: 0; }
+  @media (max-width: 899px) { .ep-grid { grid-template-columns: 1fr; } .ep-grid > .ep-panel + .ep-panel { border-left: 1px solid var(--rule); border-top: 0; } }
+  .ep-panel { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 12px; }
+  .ep-cap { display: flex; align-items: center; gap: 8px; }
+  .v-mono-html { font: 500 11px/1.4 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+  .ep-waffle-wrap { display: grid; grid-template-columns: minmax(0, 200px) 1fr; gap: 18px; align-items: center; }
+  @media (max-width: 420px) { .ep-waffle-wrap { grid-template-columns: 1fr; } .ep-waffle { max-width: 220px; } }
+  .ep-waffle { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; aspect-ratio: 1; }
+  .ep-waffle i { background: var(--paper-3); border: 1px solid var(--rule); transition: background .35s var(--ease), border-color .35s var(--ease); transition-delay: calc(var(--d, 0) * 1ms); }
+  .ep-waffle i.on { background: var(--accent); border-color: var(--accent); }
+  .ep-waffle-out b { display: block; font: 600 48px/1 var(--display); letter-spacing: -.03em; }
+  .ep-waffle-out p { margin: 8px 0 0; font-size: 15px; line-height: 1.45; }
+  .ep-src { font-size: 13px !important; color: var(--ink-2); }
+  .ep-src a { color: var(--ink-2); }
+  .ep-beam { width: 100%; max-width: 420px; height: auto; align-self: center; }
+  .ep-fulcrum { fill: var(--ink); }
+  .ep-beamline { stroke: var(--ink); stroke-width: 3; }
+  .ep-arm { transform-origin: 160px 84px; transition: transform .5s var(--ease); }
+  .ep-pan { fill: var(--paper-2); stroke: var(--ink); stroke-width: 1.2; }
+  .ep-pan-b { stroke: var(--red); }
+  .ep-pan-d { stroke: var(--green); }
+  .ep-lists { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 520px) { .ep-lists { grid-template-columns: 1fr; } }
+  .ep-lists fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+  .ep-lists legend { padding: 0 0 6px; }
+  .ep-check { display: flex; align-items: flex-start; gap: 10px; min-height: 44px; padding: 8px 0; border-top: 1px solid var(--rule); font-size: 14px; line-height: 1.35; cursor: pointer; }
+  .ep-check input { width: 18px; height: 18px; margin: 1px 0 0; flex: none; }
+  .ep-check.b input { accent-color: var(--red); }
+  .ep-check.d input { accent-color: var(--green); }
+  .ep-verdict { margin: 0; font-size: 14px; color: var(--ink-2); border-top: 1px solid var(--rule-strong); padding-top: 10px; }
+  .ep-route-stage { border-top: 0; padding: 14px 16px 18px; }
+  .ep-route { list-style: none; margin: 14px 0 0; padding: 0; display: grid; grid-template-columns: repeat(5, 1fr); align-items: end; gap: 0; }
+  .ep-route li { margin: 0; padding-top: calc((4 - var(--step)) * 22px); }
+  .ep-step { width: 100%; min-height: 88px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; text-align: left; padding: 10px 12px; cursor: pointer;
+    background: var(--paper); color: var(--ink); border: 1px solid var(--rule-strong); border-left-width: 0; border-bottom: 3px solid var(--ink); transition: background var(--dur) var(--ease), color var(--dur) var(--ease); }
+  .ep-route li:first-child .ep-step { border-left-width: 1px; }
+  .ep-route li:last-child .ep-step { border-bottom-color: var(--accent); }
+  .ep-step b { font: 600 14px/1.25 var(--display); }
+  .ep-step:hover { background: var(--paper-3); }
+  .ep-step[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .ep-step[aria-pressed="true"] .v-mono-html { color: var(--accent-ink); }
+  @media (max-width: 699px) {
+    .ep-route { grid-template-columns: 1fr; }
+    .ep-route li { padding-top: 0; padding-left: calc(var(--step) * 14px); }
+    .ep-step { min-height: 52px; border-left-width: 1px; border-top-width: 0; }
+    .ep-route li:first-child .ep-step { border-top-width: 1px; }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('.ep-viz').forEach((root) => {
+    // Waffle: switch statistic.
+    const stats = JSON.parse(root.querySelector('[data-stats]')?.textContent || '[]') as { key: string; pct: number; note: string; src: string; href: string }[];
+    const cells = Array.from(root.querySelectorAll<HTMLElement>('.ep-waffle i'));
+    const pctEl = root.querySelector('[data-stat-pct]')!;
+    const noteEl = root.querySelector('[data-stat-note]')!;
+    const srcEl = root.querySelector<HTMLAnchorElement>('[data-stat-src]')!;
+    const statBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-stat]'));
+    statBtns.forEach((b) => b.addEventListener('click', () => {
+      const s = stats.find((x) => x.key === b.dataset.stat);
+      if (!s) return;
+      statBtns.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      cells.forEach((c, i) => { c.style.setProperty('--d', String(i * 4)); c.classList.toggle('on', i < s.pct); });
+      pctEl.textContent = `${s.pct}%`;
+      noteEl.textContent = s.note;
+      srcEl.textContent = s.src;
+      srcEl.href = s.href;
+    }));
+
+    // Balance: count ticks and tilt the beam (no weighting).
+    const arm = root.querySelector<SVGGElement>('[data-arm]')!;
+    const dIn = Array.from(root.querySelectorAll<HTMLInputElement>('[data-driver]'));
+    const bIn = Array.from(root.querySelectorAll<HTMLInputElement>('[data-blocker]'));
+    const dCount = root.querySelector('[data-dcount]')!;
+    const bCount = root.querySelector('[data-bcount]')!;
+    const verdict = root.querySelector('[data-verdict]')!;
+    const tilt = () => {
+      const d = dIn.filter((i) => i.checked).length;
+      const b = bIn.filter((i) => i.checked).length;
+      dCount.textContent = `${d} / ${dIn.length}`;
+      bCount.textContent = `${b} / ${bIn.length}`;
+      const angle = Math.max(-14, Math.min(14, (d - b) * 3));
+      arm.style.transform = `rotate(${angle}deg)`;
+      if (!d && !b) verdict.textContent = 'Tick what is true for your deal. Items are not weighted — the beam simply counts.';
+      else if (d > b) verdict.textContent = `${d} driver${d === 1 ? '' : 's'} vs ${b} blocker${b === 1 ? '' : 's'}: leaning toward scale. Close the open blockers before proposing the framework.`;
+      else if (d < b) verdict.textContent = `${b} blocker${b === 1 ? '' : 's'} vs ${d} driver${d === 1 ? '' : 's'}: this pilot is at risk of stalling. Fix the commercial and trust blockers first.`;
+      else verdict.textContent = `Balanced (${d} vs ${b}): add a sponsor, a shared KPI or a scaling vector to tip it.`;
+    };
+    [...dIn, ...bIn].forEach((i) => i.addEventListener('change', tilt));
+
+    // Route: fill the readout.
+    const readout = root.querySelector<HTMLElement>('[data-readout]')!;
+    const steps = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-step]'));
+    steps.forEach((s) => s.addEventListener('click', () => {
+      steps.forEach((x) => x.setAttribute('aria-pressed', String(x === s)));
+      const tpl = root.querySelector<HTMLTemplateElement>(`[data-step-tpl="${s.dataset.step}"]`);
+      if (tpl) readout.replaceChildren(tpl.content.cloneNode(true));
+    }));
+  });
+</script>

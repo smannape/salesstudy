@@ -1,0 +1,179 @@
+---
+// Hero for "How to strategize long-term sales objectives": V2MOM wheel, budget tiers, and the
+// expansion-economics / OKR numbers stated in long-term-strategy.md (indicative SaaS figures).
+const v2mom = [
+  { k: 'Vision', rule: 'Specific outcome for a period.', ex: '“first-choice vendor… this year”' },
+  { k: 'Values', rule: 'Ranked.', ex: 'customer fit over deal size, forecast honesty, speed to first meeting' },
+  { k: 'Methods', rule: 'Ranked, owned.', ex: 'rebuild ICP from closed-won data, discovery checklist, referral programme' },
+  { k: 'Obstacles', rule: 'Ranked, each with a resolution.', ex: 'inconsistent CRM data, long procurement cycles, rep turnover' },
+  { k: 'Measures', rule: 'Baseline + target.', ex: 'qualified pipeline created, win rate by segment, average cycle length' }
+];
+const C = 150, R1 = 136, R0 = 74, GAP = 0.025;
+const pt = (r: number, a: number) => `${(C + r * Math.sin(a)).toFixed(1)} ${(C - r * Math.cos(a)).toFixed(1)}`;
+const segs = v2mom.map((s, i) => {
+  const a0 = (i / v2mom.length) * Math.PI * 2 + GAP, a1 = ((i + 1) / v2mom.length) * Math.PI * 2 - GAP, am = (a0 + a1) / 2;
+  return {
+    ...s,
+    d: `M${pt(R1, a0)} A${R1} ${R1} 0 0 1 ${pt(R1, a1)} L${pt(R0, a1)} A${R0} ${R0} 0 0 0 ${pt(R0, a0)} Z`,
+    lx: C + 105 * Math.sin(am), ly: C - 105 * Math.cos(am)
+  };
+});
+const tiers = [
+  { k: 'Tier 1', cls: 't1', what: 'Budgeted now', ex: ['Agentic AI for subsurface/drilling', 'Production optimisation', 'Digital twins', 'Predictive/prescriptive maintenance', 'Remote operations centres', 'National AI upskilling'] },
+  { k: 'Tier 2', cls: 't2', what: 'Enablers in RFP language', ex: ['OSDU-compliant data platform', 'Sovereign/private cloud', 'Cybersecurity compliance', 'IT/OT integration'] },
+  { k: 'Tier 3', cls: 't3', what: 'Declining', ex: ['Broad ESG software', '“Pilot” is now a negative word — say “deployment-ready” and “scaled”'] }
+];
+// Months axis for payback vs lifetime.
+const MX = 60, x0 = 150, xw = 350, mx = (m: number) => x0 + (m / MX) * xw;
+const okrs = [
+  { k: 'NRR', from: 105, to: 120 },
+  { k: 'Qualified opp → close', from: 25, to: 40 },
+  { k: 'Business reviews', from: 35, to: 60 }
+];
+const PX = 130, px = (v: number) => x0 + (v / PX) * xw;
+---
+<section class="viz lt-viz" aria-labelledby="lt-viz-title">
+  <div class="viz-head">
+    <h2 id="lt-viz-title">From territory plan to budget fit</h2>
+    <p class="viz-hint">Tap a V2MOM segment or a budget tier to read its detail below.</p>
+  </div>
+  <div class="lt-grid">
+    <div class="viz-stage lt-panel">
+      <span class="lt-mono">01 · Annual V2MOM</span>
+      <svg viewBox="0 0 300 300" class="lt-wheel" role="group" aria-label="V2MOM wheel">
+        {segs.map((s, i) => (
+          <g class="v-hit lt-seg" data-v={i} tabindex="0" role="button" aria-label={`${s.k}: ${s.rule}`}>
+            <path d={s.d} class="v-node" />
+            <text x={s.lx} y={s.ly + 4} text-anchor="middle" class="v-label">{s.k}</text>
+          </g>
+        ))}
+        <text x={C} y={C - 4} text-anchor="middle" class="lt-core">V2MOM</text>
+        <text x={C} y={C + 13} text-anchor="middle" class="v-sub">annual · cascaded</text>
+      </svg>
+    </div>
+    <div class="viz-stage lt-panel">
+      <span class="lt-mono">02 · Where NOC budgets go <span class="tag">inference</span></span>
+      <div class="lt-tiers">
+        {tiers.map((t, i) => (
+          <button type="button" class={`lt-tier ${t.cls}`} data-t={i} aria-pressed="false" style={`--w:${100 - i * 22}%`}>
+            <span class="lt-mono">{t.k}</span>
+            <b>{t.what}</b>
+            <span class="lt-count num">{t.ex.length} examples</span>
+          </button>
+        ))}
+      </div>
+      <p class="lt-note">Width shows budget momentum ranking only, not spend.</p>
+    </div>
+  </div>
+
+  <div class="viz-stage lt-econ">
+    <span class="lt-mono">03 · Expansion economics &amp; example OKRs <span class="tag warning">indicative</span> SaaS, not O&amp;G</span>
+    <div class="viz-scroll">
+      <svg viewBox="0 0 540 250" class="lt-econ-svg" role="img" aria-label="CAC payback 18 to 24 months versus remaining lifetime of at least twice payback; median NRR 118 percent; example OKR key results">
+        {[0, 12, 24, 36, 48, 60].map((m) => (
+          <g><line x1={mx(m)} y1="22" x2={mx(m)} y2="88" class="v-grid" /><text x={mx(m)} y="16" text-anchor="middle" class="v-mono">{m}m</text></g>
+        ))}
+        <text x="0" y="44" class="v-label">CAC payback</text>
+        <rect x={mx(18)} y="32" width={mx(24) - mx(18)} height="16" class="v-bar" />
+        <text x={mx(24) + 6} y="44" class="v-sub">18–24 months (enterprise)</text>
+        <text x="0" y="76" class="v-label">Lifetime needed</text>
+        <rect x={mx(36)} y="64" width={mx(60) - mx(36)} height="16" class="v-bar accent lt-fade" />
+        <rect x={mx(36)} y="64" width={mx(48) - mx(36)} height="16" class="v-bar accent" />
+        <text x={mx(36) - 6} y="76" text-anchor="end" class="v-sub">≥2× payback</text>
+
+        <line x1={x0} y1="108" x2={x0 + xw} y2="108" class="v-grid" />
+        {[0, 50, 100].map((v) => <text x={px(v)} y="124" text-anchor="middle" class="v-mono">{v}%</text>)}
+        <line x1={px(100)} y1="130" x2={px(100)} y2="244" class="lt-base" />
+        <text x="0" y="148" class="v-label">Median NRR</text>
+        <rect x={x0} y="137" width={px(118) - x0} height="14" class="v-bar" />
+        <text x={px(118) + 6} y="148" class="v-sub">118% (ACV &gt;$100K)</text>
+        {okrs.map((o, i) => {
+          const y = 182 + i * 26;
+          return (
+            <g>
+              <text x="0" y={y + 4} class="v-label">{o.k}</text>
+              <line x1={px(o.from)} y1={y} x2={px(o.to)} y2={y} class="lt-dumb" />
+              <circle cx={px(o.from)} cy={y} r="5" class="lt-from" />
+              <circle cx={px(o.to)} cy={y} r="5" class="lt-to" />
+              <text x={px(o.to) + 9} y={y + 4} class="v-sub">{o.from}% → {o.to}%</text>
+            </g>
+          );
+        })}
+        <text x="0" y="170" class="v-mono">Example OKR key results</text>
+      </svg>
+    </div>
+  </div>
+
+  {segs.map((s) => (
+    <template data-v-tpl={segs.indexOf(s)}><h3>{s.k}</h3><p><b>Rule:</b> {s.rule}</p><p><b>Example sales V2MOM:</b> {s.ex}</p></template>
+  ))}
+  {tiers.map((t, i) => (
+    <template data-t-tpl={i}><h3>{t.k} — {t.what}</h3><p>{t.ex.join(' · ')}</p></template>
+  ))}
+  <div class="viz-readout" aria-live="polite" data-readout>
+    <p>The cascade runs 3-year account charter → annual V2MOM → quarterly OKRs → weekly MEDDPICC → QBR. Tap a segment or tier to drill in.</p>
+  </div>
+</section>
+
+<style>
+  .lt-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); }
+  .lt-grid > .lt-panel + .lt-panel { border-left: 0; }
+  @media (max-width: 799px) { .lt-grid { grid-template-columns: 1fr; } .lt-grid > .lt-panel + .lt-panel { border-left: 1px solid var(--rule); border-top: 0; } }
+  .lt-panel { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 12px; }
+  .lt-mono { font: 500 11px/1.4 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+  .lt-wheel { width: 100%; max-width: 320px; align-self: center; }
+  .lt-wheel .v-label { font-size: 13.5px; pointer-events: none; }
+  .lt-seg.is-hot .v-node { fill: var(--accent); stroke: var(--accent); }
+  .lt-seg.is-hot .v-label { fill: var(--accent-ink); }
+  .lt-core { fill: var(--ink); font: 600 18px var(--display); letter-spacing: -.01em; }
+  .lt-tiers { display: flex; flex-direction: column; gap: 8px; }
+  .lt-tier { width: var(--w); min-width: 220px; max-width: 100%; min-height: 64px; display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 12px; align-items: center; text-align: left; padding: 10px 14px; cursor: pointer;
+    background: var(--paper); color: var(--ink); border: 1px solid var(--rule-strong); border-left-width: 4px; transition: background var(--dur) var(--ease), width .4s var(--ease); }
+  .lt-tier b { font: 600 15px/1.25 var(--display); }
+  .lt-tier .lt-count { grid-column: 2; font: 400 12px var(--mono); color: var(--ink-2); }
+  .lt-tier.t1 { border-left-color: var(--green); }
+  .lt-tier.t2 { border-left-color: var(--accent); }
+  .lt-tier.t3 { border-left-color: var(--amber); border-style: dashed; border-left-style: solid; }
+  .lt-tier:hover { background: var(--paper-3); }
+  .lt-tier[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+  .lt-tier[aria-pressed="true"] .lt-mono, .lt-tier[aria-pressed="true"] .lt-count { color: var(--paper); opacity: .75; }
+  .lt-note { margin: 0; font-size: 13px; color: var(--ink-2); }
+  .lt-econ { border-top: 0; padding: 14px 16px 12px; }
+  .lt-econ-svg { min-width: 520px; max-width: 760px; margin-top: 10px; }
+  .lt-econ-svg .v-label { font-size: 12px; font-weight: 500; }
+  .lt-fade { opacity: .3; }
+  .lt-base { stroke: var(--ink-2); stroke-dasharray: 3 3; }
+  .lt-dumb { stroke: var(--ink-3); stroke-width: 2; }
+  .lt-from { fill: var(--paper-2); stroke: var(--ink); stroke-width: 1.5; }
+  .lt-to { fill: var(--accent); }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('.lt-viz').forEach((root) => {
+    const readout = root.querySelector<HTMLElement>('[data-readout]')!;
+    const fill = (sel: string) => {
+      const tpl = root.querySelector<HTMLTemplateElement>(sel);
+      if (tpl) readout.replaceChildren(tpl.content.cloneNode(true));
+    };
+    const segs = Array.from(root.querySelectorAll<SVGGElement>('[data-v]'));
+    const tiers = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-t]'));
+    const clear = () => {
+      segs.forEach((s) => s.classList.remove('is-hot', 'is-dim'));
+      tiers.forEach((t) => t.setAttribute('aria-pressed', 'false'));
+    };
+    const pickSeg = (g: SVGGElement) => {
+      clear();
+      segs.forEach((s) => { s.classList.toggle('is-hot', s === g); s.classList.toggle('is-dim', s !== g); });
+      fill(`[data-v-tpl="${g.dataset.v}"]`);
+    };
+    segs.forEach((g) => {
+      g.addEventListener('click', () => pickSeg(g));
+      g.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pickSeg(g); } });
+    });
+    tiers.forEach((t) => t.addEventListener('click', () => {
+      clear();
+      t.setAttribute('aria-pressed', 'true');
+      fill(`[data-t-tpl="${t.dataset.t}"]`);
+    }));
+  });
+</script>

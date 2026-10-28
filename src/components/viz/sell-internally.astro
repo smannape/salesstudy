@@ -1,0 +1,247 @@
+---
+// Champion → decision path: a champion-test gauge plus the Mutual Action Plan laid out as a timeline.
+// Content comes from src/content/pages/sell-internally.md; placement on the timeline is illustrative.
+const criteria = [
+  { id: 'gain', label: 'Gains most from success', note: 'You can answer "Who gains the most personally and professionally from our solution succeeding?" with a name.' },
+  { id: 'stake', label: 'Personal stake surfaced', note: 'Their personal stake has been surfaced with Sandler personal-impact questions.' },
+  { id: 'shape', label: 'Shapes decision criteria', note: 'MEDDPICC level 3: an active internal seller who shapes the criteria.', key: true },
+  { id: 'eb', label: 'Gets you to the Economic Buyer', note: 'They said yes to "Can you help me arrange a brief meeting with [Economic Buyer]?"', key: true },
+  { id: 'proc', label: 'Gets you to procurement', note: 'They give access beyond the EB. Red flag if they cannot get you to the EB or procurement.', key: true }
+];
+
+const W = 1060, LX = 112;
+const lanes = [
+  { y: 34, label: 'Frame', sub: 'agree together' },
+  { y: 112, label: 'Milestones', sub: '5–7, owner + date' },
+  { y: 190, label: 'Value', sub: 'go-live → first value' }
+];
+const frame = [
+  { id: 'cocreate', x: 124, t1: 'Co-create', t2: 'on a live call', h: 'Co-create on a live call', p: 'Build the MAP with the buyer on a live call rather than sending a document for approval. It stays a living document after that.' },
+  { id: 'overview', x: 254, t1: 'Overview +', t2: 'value statement', h: 'Overview and value statement', p: 'Tie the plan to the buyer’s priorities, not to your product.' },
+  { id: 'criteria', x: 384, t1: 'Success', t2: 'criteria / KPIs', h: 'Success criteria / KPIs', p: 'Agree what success looks like before the milestones. The same metrics later feed the exec business case’s current-vs-target table.' },
+  { id: 'roles', x: 514, t1: 'Stakeholder roles', t2: 'both sides', h: 'Stakeholder roles on both sides', p: 'Name the Economic Buyer and Champion on the buyer side and their counterparts on yours.' }
+];
+const msStart = 600, msEnd = 900;
+const value = [
+  { id: 'golive', x: 852, t1: 'Go-live', t2: 'work back from here', h: 'Go-live', p: 'Work backward from go-live: set the date first, then place the milestones to meet it.' },
+  { id: 'firstvalue', x: 960, t1: 'First value', t2: 'extend the plan', h: 'First value', p: 'Extend the MAP past signature to first value. The champion kit asks for the MAP with its go-live date.' }
+];
+const BW = 118, BH = 44;
+---
+<section class="viz" aria-labelledby="viz-si-title" data-viz-si>
+  <div class="viz-head">
+    <h2 id="viz-si-title">From champion to decision</h2>
+    <p class="viz-hint">Tick what your champion actually does, then click a step of the Mutual Action Plan.</p>
+  </div>
+
+  <div class="viz-stage si-stage">
+    <div class="si-champ">
+      <div class="si-col">
+        <p class="eyebrow">A · Champion test</p>
+        <ul class="si-list">
+          {criteria.map((c) => (
+            <li>
+              <button type="button" class="si-crit" data-crit={c.id} data-key={c.key ? '1' : undefined} aria-pressed="false" data-note={c.note}>
+                <span class="si-box" aria-hidden="true"></span>
+                <span>{c.label}{c.key && <span class="si-key">L3</span>}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div class="si-gauge">
+        <svg viewBox="0 0 220 132" role="img" aria-labelledby="si-gauge-label">
+          <path d="M20 116 A90 90 0 0 1 200 116" class="si-arc-bg" pathLength="100" />
+          <path d="M20 116 A90 90 0 0 1 200 116" class="si-arc" pathLength="100" data-arc />
+          <text x="110" y="100" text-anchor="middle" class="si-count" data-count>0/5</text>
+          <text x="110" y="124" text-anchor="middle" class="v-mono">criteria met</text>
+        </svg>
+        <p class="si-verdict" id="si-gauge-label" data-verdict>Not yet tested</p>
+        <p class="si-why" data-why>Start with the three L3 criteria. They decide the verdict.</p>
+      </div>
+    </div>
+
+    <div class="si-map">
+      <p class="eyebrow">B · Mutual Action Plan <span class="tag">inference</span> <span class="si-layout">illustrative layout of the template</span></p>
+      <div class="viz-controls">
+        <span class="v-mono-html">Milestones</span>
+        <div class="seg" role="group" aria-label="Number of milestones">
+          {[5, 6, 7].map((n) => <button type="button" data-ms-n={n} aria-pressed={n === 5 ? 'true' : 'false'}>{n}</button>)}
+        </div>
+      </div>
+      <div class="viz-scroll">
+        <svg viewBox={`0 0 ${W} 236`} class="si-svg" role="group" aria-label="Mutual Action Plan timeline">
+          {lanes.map((l, i) => (
+            <g>
+              <rect x="0" y={l.y - 6} width={W} height="62" class={i % 2 ? 'si-lane-a' : 'v-lane'} />
+              <text x="12" y={l.y + 20} class="v-label">{l.label}</text>
+              <text x="12" y={l.y + 36} class="v-sub">{l.sub}</text>
+            </g>
+          ))}
+          <line x1={LX} y1="0" x2={LX} y2="236" class="v-grid" />
+          {/* flow edges */}
+          {frame.slice(0, -1).map((f) => <line x1={f.x + BW} y1={56} x2={f.x + BW + 12} y2={56} class="v-edge" />)}
+          <path d={`M${frame[3].x + BW / 2} ${34 + BH} V 134 H ${msStart}`} class="v-edge" />
+          <path d={`M${msEnd - 6} 134 H 911 V 190`} class="v-edge" data-ms-link />
+          <line x1={value[0].x + BW} y1="212" x2={value[1].x - 2} y2="212" class="v-edge" />
+          {/* work-backward arrow */}
+          <path d={`M${value[0].x + 10} 184 C ${value[0].x - 40} 168, ${msStart + 40} 168, ${msStart + 8} 160`} class="v-edge inf si-back" marker-end="url(#si-arrow)" />
+          <text x={(msStart + value[0].x) / 2 - 20} y="178" class="v-mono">work backward</text>
+          <defs>
+            <marker id="si-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+              <path d="M0 0 L8 4 L0 8 z" class="si-arrowhead" />
+            </marker>
+          </defs>
+          {frame.map((f) => (
+            <g class="v-hit" tabindex="0" role="button" aria-label={f.h} data-step data-h={f.h} data-p={f.p}>
+              <rect x={f.x} y={34} width={BW} height={BH} class="v-node" />
+              <text x={f.x + 9} y={52} class="v-label">{f.t1}</text>
+              <text x={f.x + 9} y={68} class="v-sub">{f.t2}</text>
+            </g>
+          ))}
+          {Array.from({ length: 7 }, (_, i) => (
+            <g class="v-hit si-ms" tabindex="0" role="button" aria-label={`Milestone ${i + 1}`} data-step data-ms={i}
+              data-h={`Milestone ${i + 1}`} data-p="Name it by the buyer outcome, not by your activity, and give it an owner and a due date. Keep 5–7 in total.">
+              <rect x={msStart} y="116" width="40" height="36" class="v-node" />
+              <text x={msStart + 8} y="139" class="v-label">M{i + 1}</text>
+            </g>
+          ))}
+          {value.map((v) => (
+            <g class="v-hit" tabindex="0" role="button" aria-label={v.h} data-step data-h={v.h} data-p={v.p}>
+              <rect x={v.x} y={190} width={v.id === 'golive' ? BW : 92} height={BH} class={v.id === 'golive' ? 'v-node si-golive' : 'v-node'} />
+              <text x={v.x + 9} y={208} class="v-label">{v.t1}</text>
+              <text x={v.x + 9} y={224} class="v-sub">{v.t2}</text>
+            </g>
+          ))}
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="viz-legend">
+    <span><i></i>MAP step</span>
+    <span><i class="si-lg-acc"></i>Go-live anchor</span>
+    <span><i class="si-lg-l3"></i>L3 = MEDDPICC level-3 champion criterion</span>
+  </div>
+  <div class="viz-readout" aria-live="polite" data-readout>
+    <p>A level-3 champion is an active internal seller who shapes the criteria and gives access. The MAP is what they take into the building: overview, success criteria, roles, and 5–7 milestones with owners and dates.</p>
+  </div>
+</section>
+
+<style>
+  .si-stage { padding: 18px 18px 8px; }
+  .si-champ { display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: 24px; align-items: center; padding-bottom: 20px; border-bottom: 1px solid var(--rule); }
+  .si-list { list-style: none; margin: 10px 0 0; padding: 0; border-top: 1px solid var(--rule); }
+  .si-list li { border-bottom: 1px solid var(--rule); }
+  .si-crit { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px; padding: 6px 4px; border: 0; background: none; cursor: pointer; text-align: left; font-size: 15px; color: var(--ink); }
+  .si-crit:hover { background: var(--paper); }
+  .si-box { flex: none; width: 20px; height: 20px; border: 1.5px solid var(--ink); position: relative; }
+  .si-crit[aria-pressed="true"] .si-box { background: var(--accent); border-color: var(--accent); }
+  .si-crit[aria-pressed="true"] .si-box::after { content: ""; position: absolute; left: 6px; top: 2px; width: 5px; height: 10px; border: solid var(--accent-ink); border-width: 0 2px 2px 0; transform: rotate(45deg); }
+  .si-key { margin-left: 8px; font: 500 10px var(--mono); letter-spacing: .06em; color: var(--accent); border: 1px solid currentColor; padding: 0 4px; vertical-align: 1px; }
+  .si-gauge { text-align: center; }
+  .si-gauge svg { width: 100%; max-width: 240px; margin: 0 auto; display: block; }
+  .si-arc-bg, .si-arc { fill: none; stroke-width: 16; }
+  .si-arc-bg { stroke: var(--paper-3); }
+  .si-arc { stroke: var(--accent); stroke-dasharray: 0 100; transition: stroke-dasharray .5s var(--ease), stroke var(--dur) var(--ease); }
+  .si-arc.warn { stroke: var(--amber); }
+  .si-arc.ok { stroke: var(--green); }
+  .si-count { fill: var(--ink); font: 600 34px var(--display); letter-spacing: -.02em; }
+  .si-verdict { margin: 6px 0 4px; font: 600 18px/1.25 var(--display); }
+  .si-verdict.warn { color: var(--amber); }
+  .si-verdict.ok { color: var(--green); }
+  .si-why { margin: 0; font-size: 13px; color: var(--ink-2); line-height: 1.45; }
+  .si-map { padding-top: 16px; }
+  .si-map .eyebrow { margin: 0 0 10px; }
+  .si-layout { text-transform: none; letter-spacing: 0; font-family: var(--sans); font-size: 12px; margin-left: 4px; }
+  .v-mono-html { font: 500 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
+  .si-svg { min-width: 860px; }
+  .si-lane-a { fill: var(--paper-2); }
+  .si-golive { stroke: var(--accent); stroke-width: 2; }
+  .si-back { stroke: var(--accent); }
+  .si-arrowhead { fill: var(--accent); }
+  .si-lg-acc { background: var(--accent) !important; }
+  .si-lg-l3 { background: transparent !important; border: 1px solid var(--accent); }
+  .v-hit:focus-visible { outline: none; }
+  .v-hit:focus-visible .v-node { stroke: var(--accent); stroke-width: 2.5; }
+  @media (max-width: 699px) {
+    .si-stage { padding: 14px 12px 6px; }
+    .si-champ { grid-template-columns: 1fr; }
+  }
+</style>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-viz-si]');
+  if (root) {
+    const readout = root.querySelector<HTMLElement>('[data-readout]')!;
+    const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+    const say = (h: string, p: string) => { readout.innerHTML = `<h3>${esc(h)}</h3><p>${esc(p)}</p>`; };
+
+    // A · champion gauge
+    const crits = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-crit]'));
+    const arc = root.querySelector<SVGPathElement>('[data-arc]')!;
+    const count = root.querySelector<SVGTextElement>('[data-count]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+    const why = root.querySelector<HTMLElement>('[data-why]')!;
+    const update = () => {
+      const on = crits.filter((c) => c.getAttribute('aria-pressed') === 'true');
+      const has = (id: string) => on.some((c) => c.dataset.crit === id);
+      arc.style.strokeDasharray = `${(on.length / crits.length) * 100} 100`;
+      count.textContent = `${on.length}/${crits.length}`;
+      let v = 'Not yet tested', cls = '', w = 'Start with the three L3 criteria. They decide the verdict.';
+      if (has('shape') && has('eb') && has('proc')) {
+        v = 'Level-3 champion'; cls = 'ok';
+        w = 'An active internal seller who shapes the criteria and gives access. Equip them with the champion kit.';
+      } else if (on.length && (!has('eb') || !has('proc'))) {
+        v = 'Coach, not champion'; cls = 'warn';
+        w = 'Red flag: they cannot get you to the EB or procurement yet. (The "coach" label is shorthand, not from the sources.)';
+      } else if (on.length) {
+        v = 'Access, but not shaping'; cls = 'warn';
+        w = 'They open doors, but level 3 also means shaping the decision criteria.';
+      }
+      verdict.textContent = v;
+      verdict.className = `si-verdict ${cls}`;
+      arc.setAttribute('class', `si-arc ${cls}`);
+      why.textContent = w;
+    };
+    crits.forEach((c) => c.addEventListener('click', () => {
+      c.setAttribute('aria-pressed', c.getAttribute('aria-pressed') === 'true' ? 'false' : 'true');
+      update();
+      say(c.textContent!.replace('L3', '').trim(), c.dataset.note!);
+    }));
+
+    // B · MAP timeline
+    const steps = Array.from(root.querySelectorAll<SVGGElement>('[data-step]'));
+    const ms = Array.from(root.querySelectorAll<SVGGElement>('[data-ms]'));
+    const msStart = 600, msEnd = 900, gap = 6;
+    const layout = (n: number) => {
+      const w = (msEnd - msStart - gap * (n - 1)) / n;
+      ms.forEach((g, i) => {
+        const show = i < n;
+        g.style.display = show ? '' : 'none';
+        g.setAttribute('tabindex', show ? '0' : '-1');
+        const x = msStart + i * (w + gap);
+        g.querySelector('rect')!.setAttribute('x', String(x));
+        g.querySelector('rect')!.setAttribute('width', String(w));
+        g.querySelector('text')!.setAttribute('x', String(x + 8));
+      });
+    };
+    const segs = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-ms-n]'));
+    segs.forEach((b) => b.addEventListener('click', () => {
+      segs.forEach((s) => s.setAttribute('aria-pressed', String(s === b)));
+      layout(Number(b.dataset.msN));
+      say(`${b.dataset.msN} milestones`, 'The template asks for 5–7 milestones, each with an owner and a due date, named by buyer outcomes.');
+    }));
+    layout(5);
+    const select = (g: SVGGElement) => {
+      steps.forEach((s) => s.classList.toggle('is-hot', s === g));
+      say(g.dataset.h!, g.dataset.p!);
+    };
+    steps.forEach((g) => {
+      g.addEventListener('click', () => select(g));
+      g.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(g); }
+      });
+    });
+  }
+</script>

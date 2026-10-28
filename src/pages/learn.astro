@@ -1,22 +1,286 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
-import Card from '../components/Card.astro';
+import { shortTitle } from '../lib/short';
 
 const pages = (await getCollection('pages')).sort((a, b) => a.data.order - b.data.order);
+const bySlug = new Map(pages.map((p) => [p.data.slug, p]));
 const total = pages.reduce((n, p) => n + (p.data.readMinutes ?? 0), 0);
+
+// Layers, top to bottom: what you need to know → who to sell to → how to run the deal → how to measure and grow.
+const LANES = [
+  { id: 'foundations', name: 'Foundations', sub: 'How selling works in software and in OFS', slugs: ['how-software-sales-work', 'how-ofs-sales-work'] },
+  { id: 'account', name: 'Account & offer', sub: 'Who to target, what to say, how to price', slugs: ['target-a-client', 'keywords', 'revenue-models'] },
+  { id: 'deal', name: 'Run the deal', sub: 'Stages, execution and the internal sell', slugs: ['sales-cycle', 'running-the-cycle', 'sell-internally'] },
+  { id: 'grow', name: 'Measure & grow', sub: 'Forecasting, adoption and long-term plans', slugs: ['metrics', 'increase-software-sales-ep', 'long-term-strategy'] }
+];
+
+// Documented = an actual link in one page's Markdown to another. Inferred = shared concepts, no link.
+const DOC: [string, string][] = [
+  ['sales-cycle', 'how-software-sales-work'],
+  ['how-ofs-sales-work', 'revenue-models'],
+  ['keywords', 'long-term-strategy'],
+  ['long-term-strategy', 'metrics'],
+  ['long-term-strategy', 'target-a-client']
+];
+const INF: [string, string, string][] = [
+  ['metrics', 'how-software-sales-work', 'MEDDPICC scorer uses the framework'],
+  ['running-the-cycle', 'how-software-sales-work', 'discovery questions come from SPIN/Sandler'],
+  ['target-a-client', 'how-ofs-sales-work', 'decision map follows NOC procurement gates'],
+  ['running-the-cycle', 'sales-cycle', 'checklists per stage'],
+  ['sell-internally', 'sales-cycle', 'MAP covers late-stage steps'],
+  ['sell-internally', 'target-a-client', 'champion sits in the decision map'],
+  ['increase-software-sales-ep', 'running-the-cycle', 'pilot-to-scale relies on POC discipline'],
+  ['increase-software-sales-ep', 'revenue-models', 'scaling changes the contract shape'],
+  ['metrics', 'running-the-cycle', 'POC success and technical win rate']
+];
+
+const W = 1000, LANE_H = 140, TOP = 8, BW = 210, BH = 56;
+type Node = { slug: string; x: number; y: number; lane: number; order: number; title: string; short: string };
+const nodes: Node[] = LANES.flatMap((lane, li) =>
+  lane.slugs.map((slug, i) => {
+    const n = lane.slugs.length;
+    const p = bySlug.get(slug)!;
+    return { slug, lane: li, x: (W * (i + 0.5)) / n, y: TOP + li * LANE_H + 76, order: p.data.order, title: p.data.title, short: shortTitle(slug) };
+  })
+);
+const N = new Map(nodes.map((n) => [n.slug, n]));
+const H = TOP + LANES.length * LANE_H + 8;
+
+const path = (a: Node, b: Node, i: number) => {
+  if (a.lane === b.lane) {
+    const y = a.y + BH / 2, dip = 26 + (i % 3) * 6;
+    return `M${a.x},${y} C${a.x},${y + dip} ${b.x},${y + dip} ${b.x},${y + 2}`;
+  }
+  const down = a.lane < b.lane;
+  const off = ((i % 5) - 2) * 14;
+  const y1 = down ? a.y + BH / 2 : a.y - BH / 2;
+  const y2 = down ? b.y - BH / 2 - 2 : b.y + BH / 2 + 2;
+  const k = Math.abs(y2 - y1) * 0.45;
+  return `M${a.x + off},${y1} C${a.x + off},${y1 + (down ? k : -k)} ${b.x + off / 2},${y2 + (down ? -k : k)} ${b.x + off / 2},${y2}`;
+};
+const edges = [
+  ...DOC.map(([f, t], i) => ({ f, t, kind: 'doc', note: 'linked from the page text', d: path(N.get(f)!, N.get(t)!, i) })),
+  ...INF.map(([f, t, note], i) => ({ f, t, kind: 'inf', note, d: path(N.get(f)!, N.get(t)!, i + 2) }))
+];
+
+const nodeData = Object.fromEntries(pages.map((p) => [p.data.slug, {
+  title: p.data.title, summary: p.data.summary, min: p.data.readMinutes ?? null, order: p.data.order,
+  out: edges.filter((e) => e.f === p.data.slug).map((e) => ({ s: e.t, k: e.kind, n: e.note })),
+  in: edges.filter((e) => e.t === p.data.slug).map((e) => ({ s: e.f, k: e.kind, n: e.note }))
+}]));
+const titles = Object.fromEntries(pages.map((p) => [p.data.slug, shortTitle(p.data.slug)]));
+const maxMin = Math.max(...pages.map((p) => p.data.readMinutes ?? 0));
+const wrap = (s: string, n = 26) => {
+  if (s.length <= n) return [s];
+  const cut = s.lastIndexOf(' ', n);
+  return [s.slice(0, cut), s.slice(cut + 1)];
+};
 ---
-<Base title="Learn">
+<Base title="Overview" description="How the eleven Sales Hub reference pages relate, layer by layer.">
   <header class="page-head">
-    <div class="eyebrow">Learn</div>
-    <h1>Reference pages</h1>
-    <p class="lede">Eleven dense pages on enterprise-software and OFS selling to Gulf NOCs. About <span class="num">{total}</span> minutes in total — read one card a day.</p>
+    <div class="eyebrow">00 — Overview · As of 28 Oct 2026</div>
+    <h1>How the pages relate</h1>
+    <p class="lede">Eleven reference pages on selling E&amp;P software to Gulf NOCs. The chart shows what builds on what, layer by layer: foundations at the top, measuring and growing at the bottom.</p>
   </header>
-  <div class="grid">
-    {pages.map((p) => (
-      <Card href={`/${p.data.slug}/`} eyebrow={`${String(p.data.order).padStart(2, '0')} · ${p.data.readMinutes ?? '–'} min`} title={p.data.title}>
-        <span class="muted">{p.data.summary}</span>
-      </Card>
-    ))}
+
+  <div class="stats">
+    <div class="stat"><b class="num">{pages.length}</b><span>Pages on the chart</span></div>
+    <div class="stat"><b class="num">{edges.length}</b><span>Relationships drawn</span></div>
+    <div class="stat"><b class="num">{DOC.length}</b><span>Documented links, solid</span></div>
+    <div class="stat"><b class="num">{INF.length}</b><span>Inferred links, dashed</span></div>
+    <div class="stat"><b class="num">{LANES.length}</b><span>Layers, foundations at top</span></div>
+    <div class="stat"><b class="num">{total}</b><span>Minutes to read it all</span></div>
   </div>
+
+  <section class="viz" aria-labelledby="map-title" data-map>
+    <div class="viz-head">
+      <h2 id="map-title">The page map</h2>
+      <p class="viz-hint">Hover or tap a page; click a layer name to dim it. Scroll sideways on small screens.</p>
+    </div>
+    <div class="viz-legend">
+      <span><svg width="44" height="10" aria-hidden="true"><line x1="0" y1="5" x2="44" y2="5" class="v-edge" /></svg> Documented: the page links to it</span>
+      <span><svg width="44" height="10" aria-hidden="true"><line x1="0" y1="5" x2="44" y2="5" class="v-edge inf" /></svg> Inferred: shared concepts, no link</span>
+      <span>Arrow points from a page to the page it builds on.</span>
+    </div>
+    <div class="viz-stage viz-scroll">
+      <svg viewBox={`0 0 ${W} ${H}`} style="min-width:760px" role="group" aria-label="Relationship map of the reference pages">
+        <defs>
+          <marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8 z" class="m-doc" /></marker>
+          <marker id="ah-inf" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8 z" class="m-inf" /></marker>
+          <marker id="ah-hot" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8 z" class="m-hot" /></marker>
+        </defs>
+        {LANES.map((lane, li) => (
+          <g class="lane" data-lane={lane.id}>
+            <rect x="0" y={TOP + li * LANE_H} width={W} height={LANE_H - 6} class={li % 2 ? 'v-lane' : 'lane-a'} />
+            <g class="lane-btn" tabindex="0" role="button" aria-pressed="false" aria-label={`Dim layer ${lane.name}`} data-lane-btn={lane.id}>
+              <rect x="10" y={TOP + li * LANE_H + 4} width="330" height="30" fill="transparent" />
+              <text x="18" y={TOP + li * LANE_H + 18} class="v-mono lane-name">{lane.name}</text>
+              <text x="18" y={TOP + li * LANE_H + 31} class="v-sub" style="font-style:normal">{lane.sub} — click to dim</text>
+            </g>
+          </g>
+        ))}
+        <g class="edges">
+          {edges.map((e) => (
+            <path d={e.d} class={`v-edge ${e.kind === 'inf' ? 'inf' : ''}`} marker-end={e.kind === 'inf' ? 'url(#ah-inf)' : 'url(#ah)'} data-f={e.f} data-t={e.t} data-kind={e.kind} />
+          ))}
+        </g>
+        {nodes.map((n) => (
+          <g class="v-hit" tabindex="0" role="button" aria-label={`${n.title}: show relationships`} data-node={n.slug} data-lane={LANES[n.lane].id}>
+            <rect x={n.x - BW / 2} y={n.y - BH / 2} width={BW} height={BH} class="v-node" />
+            <text x={n.x - BW / 2 + 10} y={n.y - BH / 2 + 15} class="v-mono" style="font-size:9.5px">{String(n.order).padStart(2, '0')}</text>
+            {wrap(n.title).map((line, i, arr) => (
+              <text x={n.x} y={n.y + 5 + (i - (arr.length - 1) / 2) * 15} text-anchor="middle" class="v-label">{line}</text>
+            ))}
+          </g>
+        ))}
+      </svg>
+    </div>
+    <div class="viz-readout" aria-live="polite" data-readout>
+      <p>Hover or tap a page to see what it builds on and what builds on it. Solid lines are links written into the pages; dashed lines are inferred from shared concepts.</p>
+    </div>
+  </section>
+
+  <section class="viz" aria-labelledby="rt-title">
+    <div class="viz-head">
+      <h2 id="rt-title">Reading time by page</h2>
+      <p class="viz-hint">One page a day covers the set in under two weeks.</p>
+    </div>
+    <ol class="bars">
+      {pages.map((p) => (
+        <li>
+          <a href={`/${p.data.slug}/`}>
+            <span class="b-n num">{String(p.data.order).padStart(2, '0')}</span>
+            <span class="b-t">{p.data.title}</span>
+            <span class="b-track"><i style={`--w:${((p.data.readMinutes ?? 0) / maxMin) * 100}%`}></i></span>
+            <span class="b-v num">{p.data.readMinutes ?? '–'} min</span>
+          </a>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <section class="viz" aria-labelledby="h-title">
+    <div class="viz-head">
+      <h2 id="h-title">The same pages as a plain hierarchy</h2>
+      <p class="viz-hint">For anyone who only wants the layers.</p>
+    </div>
+    {LANES.map((lane) => (
+      <div class="hier">
+        <div><b>{lane.name}</b><span class="muted small">{lane.sub}</span></div>
+        <div class="hier-chips">{lane.slugs.map((s) => <a class="hchip" href={`/${s}/`}>{String(bySlug.get(s)!.data.order).padStart(2, '0')} {bySlug.get(s)!.data.title}</a>)}</div>
+      </div>
+    ))}
+  </section>
+
+  <script type="application/json" id="map-data" set:html={JSON.stringify({ nodes: nodeData, titles })}></script>
 </Base>
+
+<style>
+  .lane-a { fill: var(--lane-a); }
+  .lane-name { fill: var(--ink); font-weight: 600; font-size: 11px; }
+  .lane-btn { cursor: pointer; }
+  .lane-btn:hover .lane-name, .lane-btn:focus-visible .lane-name { fill: var(--accent); }
+  .lane.is-dim { opacity: 1; }
+  .lane.is-dim rect.v-lane, .lane.is-dim rect.lane-a { opacity: .45; }
+  .m-doc { fill: var(--edge-doc); }
+  .m-inf { fill: var(--edge-inf); }
+  .m-hot { fill: var(--accent); }
+  .v-hit .v-node { transition: stroke var(--dur) var(--ease); }
+  .v-hit:focus { outline: none; }
+  .v-hit:focus-visible .v-node { stroke: var(--accent); stroke-width: 2.5; }
+
+  .bars { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
+  .bars li { border-bottom: 1px solid var(--rule); }
+  .bars a { display: grid; grid-template-columns: 28px minmax(0, 1.4fr) minmax(80px, 1fr) 56px; align-items: center; gap: 14px; min-height: 46px; text-decoration: none; color: var(--ink); font-size: 15px; transition: background var(--dur) var(--ease); }
+  .bars a:hover { background: var(--paper-2); }
+  .bars a:hover .b-track i { background: var(--accent); }
+  .b-n, .b-v { font: 400 12px var(--mono); color: var(--ink-2); }
+  .b-v { text-align: right; padding-right: 4px; }
+  .b-t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .b-track { height: 10px; background: var(--paper-3); position: relative; }
+  .b-track i { position: absolute; inset: 0 auto 0 0; width: var(--w); background: var(--ink); transition: background var(--dur) var(--ease); }
+  @media (max-width: 599px) {
+    .bars a { grid-template-columns: 24px minmax(0, 1fr) 52px; row-gap: 4px; padding: 8px 0; }
+    .b-track { grid-column: 2 / 4; grid-row: 2; }
+  }
+
+  .hier { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--rule); }
+  .hier b { display: block; font: 600 17px/1.3 var(--display); }
+  .hier-chips { display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; }
+  .hchip { display: inline-flex; align-items: center; min-height: 36px; padding: 4px 10px; border: 1px solid var(--rule-strong); font: 400 12px var(--mono); color: var(--ink); text-decoration: none; background: var(--paper-2); }
+  .hchip:hover { background: var(--ink); color: var(--paper); }
+  @media (max-width: 699px) { .hier { grid-template-columns: 1fr; gap: 8px; } .hchip { min-height: 44px; } }
+
+  .rd-links { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 24px; margin-top: 10px; }
+  @media (max-width: 599px) { .rd-links { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+  type Rel = { s: string; k: string; n: string };
+  type Info = { title: string; summary: string; min: number | null; order: number; out: Rel[]; in: Rel[] };
+  const data = JSON.parse(document.getElementById('map-data')!.textContent!) as { nodes: Record<string, Info>; titles: Record<string, string> };
+  const root = document.querySelector<HTMLElement>('[data-map]')!;
+  const nodes = Array.from(root.querySelectorAll<SVGGElement>('[data-node]'));
+  const edges = Array.from(root.querySelectorAll<SVGPathElement>('path[data-f]'));
+  const readout = root.querySelector<HTMLElement>('[data-readout]')!;
+  const initial = readout.innerHTML;
+  let pinned: string | null = null;
+
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+  const rel = (list: Rel[], label: string) => list.length
+    ? `<div><div class="eyebrow">${label}</div>${list.map((r) => `<div><a href="/${r.s}/">${esc(data.titles[r.s])}</a> <span class="muted small">— ${r.k === 'doc' ? 'documented' : esc(r.n)}</span></div>`).join('')}</div>`
+    : `<div><div class="eyebrow">${label}</div><div class="muted small">None drawn</div></div>`;
+
+  const focus = (slug: string | null) => {
+    if (!slug) {
+      nodes.forEach((n) => n.classList.remove('is-dim', 'is-hot'));
+      edges.forEach((e) => { e.classList.remove('is-dim', 'is-hot'); e.setAttribute('marker-end', e.dataset.kind === 'inf' ? 'url(#ah-inf)' : 'url(#ah)'); });
+      readout.innerHTML = initial;
+      return;
+    }
+    const linked = new Set([slug]);
+    edges.forEach((e) => {
+      const on = e.dataset.f === slug || e.dataset.t === slug;
+      if (on) { linked.add(e.dataset.f!); linked.add(e.dataset.t!); }
+      e.classList.toggle('is-hot', on);
+      e.classList.toggle('is-dim', !on);
+      e.setAttribute('marker-end', on ? 'url(#ah-hot)' : e.dataset.kind === 'inf' ? 'url(#ah-inf)' : 'url(#ah)');
+    });
+    nodes.forEach((n) => {
+      n.classList.toggle('is-hot', n.dataset.node === slug);
+      n.classList.toggle('is-dim', !linked.has(n.dataset.node!));
+    });
+    const d = data.nodes[slug];
+    readout.innerHTML = `<div class="eyebrow">${String(d.order).padStart(2, '0')} · ${d.min ?? '–'} min read</div>
+      <h3>${esc(d.title)}</h3><p>${esc(d.summary)}</p>
+      <div class="rd-links">${rel(d.out, 'Builds on')}${rel(d.in, 'Built on by')}</div>
+      <p style="margin-top:12px"><a class="btn small" href="/${slug}/">Open page →</a></p>`;
+  };
+
+  nodes.forEach((n) => {
+    const slug = n.dataset.node!;
+    n.addEventListener('mouseenter', () => { if (!pinned) focus(slug); });
+    n.addEventListener('mouseleave', () => { if (!pinned) focus(null); });
+    const pick = () => { pinned = pinned === slug ? null : slug; focus(pinned); };
+    n.addEventListener('click', pick);
+    n.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+  });
+  root.querySelector('svg')!.addEventListener('click', (e) => {
+    if (!(e.target as Element).closest('[data-node]') && pinned) { pinned = null; focus(null); }
+  });
+
+  root.querySelectorAll<SVGGElement>('[data-lane-btn]').forEach((btn) => {
+    const id = btn.dataset.laneBtn!;
+    const toggle = () => {
+      const on = btn.getAttribute('aria-pressed') !== 'true';
+      btn.setAttribute('aria-pressed', String(on));
+      btn.closest('.lane')!.classList.toggle('is-dim', on);
+      nodes.filter((n) => n.dataset.lane === id).forEach((n) => n.style.opacity = on ? '.2' : '');
+      const inLane = new Set(nodes.filter((n) => n.dataset.lane === id).map((n) => n.dataset.node));
+      edges.filter((e) => inLane.has(e.dataset.f) || inLane.has(e.dataset.t)).forEach((e) => e.style.opacity = on ? '.12' : '');
+    };
+    btn.addEventListener('click', (e) => { e.stopPropagation(); toggle(); });
+    btn.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+  });
+</script>

@@ -1,8 +1,8 @@
 ---
 import { getCollection, render } from 'astro:content';
 import Base from '../layouts/Base.astro';
-import Card from '../components/Card.astro';
 import { formatDate } from '../lib/dates';
+import { shortTitle } from '../lib/short';
 
 export async function getStaticPaths() {
   const pages = (await getCollection('pages')).sort((a, b) => a.data.order - b.data.order);
@@ -16,44 +16,73 @@ const { page, prev, next } = Astro.props;
 const { Content, headings } = await render(page);
 const toc = headings.filter((h) => h.depth === 2);
 const p = page.data;
+const nn = String(p.order).padStart(2, '0');
+
+// Each page may ship a hero infographic at src/components/viz/<slug>.astro.
+const vizMods = import.meta.glob<{ default: any }>('../components/viz/*.astro', { eager: true });
+const Viz = vizMods[`../components/viz/${p.slug}.astro`]?.default;
+
+// Stat strip, counted from the source Markdown.
+const body = page.body ?? '';
+const sources = new Set([...body.matchAll(/\]\((https?:\/\/[^)\s]+)\)/g)].map((m) => new URL(m[1]).hostname.replace(/^www\./, ''))).size;
+const tasks = (body.match(/^\s*- \[ \]/gm) ?? []).length;
+const stats = [
+  { v: p.readMinutes ?? '–', l: 'Minutes to read' },
+  { v: toc.length, l: 'Sections' },
+  { v: sources, l: 'Source domains cited' },
+  ...(tasks ? [{ v: tasks, l: 'Checklist items' }] : [])
+];
 ---
 <Base title={p.title} description={p.summary}>
+  <header class="page-head">
+    <div class="eyebrow">{nn} — {shortTitle(p.slug)} · As of <time datetime={p.updated}>{formatDate(p.updated)}</time></div>
+    <h1>{p.title}</h1>
+    <p class="lede">{p.summary}</p>
+    <div class="meta-row">{p.tags.slice(0, 8).map((t) => <span class="tag default">{t}</span>)}</div>
+  </header>
+
+  <div class="stats">
+    {stats.map((s) => <div class="stat"><b class="num">{s.v}</b><span>{s.l}</span></div>)}
+  </div>
+
+  {Viz && <Viz />}
+
   <div class="workbench">
     <article>
-      <header class="page-head">
-        <div class="eyebrow">Learn · {String(p.order).padStart(2, '0')}</div>
-        <h1>{p.title}</h1>
-        <p class="lede">{p.summary}</p>
-        <div class="meta-row">
-          {p.readMinutes && <span class="tag default num">{p.readMinutes} min read</span>}
-          <span class="tag default">Updated <time datetime={p.updated}>{formatDate(p.updated)}</time></span>
-          {p.tags.map((t) => <span class="tag">{t}</span>)}
-        </div>
-      </header>
       <div class="running-text">
         <Content />
       </div>
-      <nav class="grid tight" aria-label="Pager" style="margin-top:32px">
-        {prev && <Card href={`/${prev.data.slug}/`} eyebrow="Previous" title={prev.data.title} />}
-        {next && <Card href={`/${next.data.slug}/`} eyebrow="Next" title={next.data.title} />}
+      <nav class="pager" aria-label="Pager">
+        {prev ? <a href={`/${prev.data.slug}/`}><span class="eyebrow">← Previous · {String(prev.data.order).padStart(2, '0')}</span><b>{prev.data.title}</b></a> : <span></span>}
+        {next && <a href={`/${next.data.slug}/`} class="next"><span class="eyebrow">Next · {String(next.data.order).padStart(2, '0')} →</span><b>{next.data.title}</b></a>}
       </nav>
     </article>
     <aside class="rail rail-first">
       {toc.length > 0 && (
-        <nav class="panel toc" aria-label="On this page">
+        <nav class="toc" aria-label="On this page">
           <div class="eyebrow">On this page</div>
           <ol>{toc.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}</ol>
         </nav>
       )}
-      <div class="panel rail-related">
-        <div class="eyebrow">Related</div>
+      <div class="toc rail-related">
+        <div class="eyebrow">Tools</div>
         <ul class="link-list small">
-          <li><a href="/metrics/">MEDDPICC scorer</a></li>
-          <li><a href="/target-a-client/">Whitespace matrix</a></li>
-          <li><a href="/news/">This week's news</a></li>
-          <li><a href="/search/">Search all pages</a></li>
+          <li><a href="/metrics/#meddpicc-scoring-rubric">MEDDPICC scorer →</a></li>
+          <li><a href="/target-a-client/#whitespace-matrix">Whitespace matrix →</a></li>
+          <li><a href="/learn/">How the pages relate →</a></li>
+          <li><a href="/news/">This week's news →</a></li>
         </ul>
       </div>
     </aside>
   </div>
 </Base>
+
+<style>
+  .pager { display: grid; grid-template-columns: 1fr 1fr; margin-top: 72px; border-top: 1px solid var(--rule-strong); }
+  .pager a { display: flex; flex-direction: column; gap: 8px; padding: 18px 16px 18px 0; text-decoration: none; color: var(--ink); min-height: 44px; transition: background var(--dur) var(--ease); }
+  .pager a.next { text-align: right; padding: 18px 0 18px 16px; border-left: 1px solid var(--rule); }
+  .pager a:hover { background: var(--paper-2); }
+  .pager a:hover b { color: var(--accent); }
+  .pager b { font: 600 18px/1.3 var(--display); letter-spacing: -.01em; }
+  @media (max-width: 599px) { .pager { grid-template-columns: 1fr; } .pager a.next { border-left: 0; border-top: 1px solid var(--rule); text-align: left; padding-left: 0; } }
+</style>

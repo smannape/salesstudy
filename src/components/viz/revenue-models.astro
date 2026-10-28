@@ -1,0 +1,128 @@
+---
+// Seven revenue models on a risk spectrum. The ordering is our inference; every cell of text is from the page's table.
+const W = 900, H = 290, NW = 168, NH = 52, AXIS_Y = 132;
+
+const models = [
+  { id: 'perpetual', name: 'Perpetual + maintenance', how: 'One-off licence fee + annual M&S', examples: 'SLB Petrel/Techlog (still offered), legacy Landmark',
+    noc: { pro: 'CapEx-friendly; asset on books; no renewal cliff', con: 'Large upfront; version lock-in; M&S creep' },
+    vendor: { pro: 'Upfront cash; sticky base', con: 'Lumpy revenue; harder to upsell cloud/AI' } },
+  { id: 'subscription', name: 'Term / subscription', how: 'Annual or multi-year right-to-use', examples: 'DecisionSpace 365, Delfi SaaS, AVEVA Flex',
+    noc: { pro: 'Lower entry (AVEVA claims up to 65%); scalable', con: 'OpEx budget; renewal risk; cumulative cost' },
+    vendor: { pro: 'Recurring, "accretive margin" (SLB)', con: 'Churn at renewal/tender' } },
+  { id: 'token', name: 'Token / credit pool', how: 'Buy a pool; products draw tokens', examples: 'AspenTech tokens; AVEVA Flex credits; (SLB Delfi reportedly similar — <span class="tag danger">unverified</span>)',
+    noc: { pro: 'Flexibility across products/regions; usage visibility', con: 'Token denials; hard to forecast; audit burden' },
+    vendor: { pro: 'Portfolio pull-through; consumption upsell', con: 'NOC procurement may struggle to specify' } },
+  { id: 'framework', name: 'Enterprise framework', how: '3–5 yr umbrella with call-offs', examples: 'SLB–Petrobras 5-yr; Palantir–bp 5-yr; AIQ–ADNOC 3-yr $340m',
+    noc: { pro: 'One tender covers scale-out; price certainty', con: 'Lock-in; big tender effort' },
+    vendor: { pro: 'Visibility, embedded position', con: 'Long cycle, heavy prequalification' } },
+  { id: 'services', name: 'Services-wrapped', how: 'Priced inside a services/manpower contract', examples: 'Halliburton–KOC KwIDF',
+    noc: { pro: 'Fits services templates; adoption support built in', con: 'Software value opaque; renewal tied to manpower rates' },
+    vendor: { pro: 'Easier to tender via services categories', con: 'Margin dilution; scope creep' } },
+  { id: 'managed', name: 'Managed private cloud', how: 'Vendor operates on-prem private cloud', examples: 'iEnergy Stack (Petrobel, NOCs); Aramco Digital sovereign cloud',
+    noc: { pro: 'Data residency; limited IT staff needed', con: 'Vendor dependency; hardware refresh' },
+    vendor: { pro: 'Sticky recurring managed-services revenue', con: 'Capital/people intensive' } },
+  { id: 'outcome', name: 'Outcome / gain-share', how: 'Fee tied to uplift, downtime, trips', examples: 'BHGE–NLNG 20% trip reduction; H&P per-well bonuses',
+    noc: { pro: 'Risk transfer; easy value story', con: 'Baseline disputes; audit; procurement rules may not allow' },
+    vendor: { pro: 'Premium if delivered', con: 'Baseline/attribution risk; "efficiency cuts billable activity"' } }
+];
+const cx = (i: number) => 92 + i * ((W - 184) / (models.length - 1));
+const up = (i: number) => i % 2 === 0;
+const ny = (i: number) => (up(i) ? AXIS_Y - 24 - NH : AXIS_Y + 24);
+const bundle = ['framework', 'services', 'managed'].map((id) => models.findIndex((m) => m.id === id));
+const bx1 = cx(bundle[0]) - NW / 2, bx2 = cx(bundle[2]) + NW / 2, by = H - 34;
+const data = JSON.stringify(models);
+---
+<section class="viz" aria-labelledby="viz-rev-h" data-viz="revenue">
+  <div class="viz-head">
+    <h2 id="viz-rev-h">Who carries the risk</h2>
+    <p class="viz-hint">Tap a model; switch between the NOC's and the vendor's view. <span class="only-small">Scroll sideways on small screens.</span></p>
+  </div>
+  <div class="viz-controls">
+    <div class="seg" role="group" aria-label="Point of view">
+      <button type="button" data-view="noc" aria-pressed="true">NOC view</button>
+      <button type="button" data-view="vendor" aria-pressed="false">Vendor view</button>
+    </div>
+    <span class="viz-hint">Axis ordering <span class="tag">inference</span></span>
+  </div>
+  <div class="viz-stage viz-scroll">
+    <svg viewBox={`0 0 ${W} ${H}`} style="min-width:720px" role="group" aria-label="Seven revenue models on a risk spectrum">
+      <defs>
+        <marker id="rev-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8 z" class="rev-head" /></marker>
+      </defs>
+      <path class="v-edge rev-axis" d={`M14,${AXIS_Y} H${W - 14}`} marker-start="url(#rev-arrow)" marker-end="url(#rev-arrow)" />
+      <text class="v-mono" x="14" y={AXIS_Y - 10}>NOC pays upfront</text>
+      <text class="v-mono" x="14" y={AXIS_Y + 18}>NOC carries risk</text>
+      <text class="v-mono" x={W - 14} y={AXIS_Y - 10} text-anchor="end">Vendor carries</text>
+      <text class="v-mono" x={W - 14} y={AXIS_Y + 18} text-anchor="end">outcome risk</text>
+      {models.map((m, i) => (
+        <g class="v-hit" data-node={m.id} tabindex="0" role="button" aria-label={`${m.name}: ${m.how}`}>
+          <path class="v-edge inf" d={`M${cx(i)},${AXIS_Y} V${up(i) ? ny(i) + NH : ny(i)}`} />
+          <circle class="rev-dot" cx={cx(i)} cy={AXIS_Y} r="5" />
+          <rect class="v-node" x={cx(i) - NW / 2} y={ny(i)} width={NW} height={NH} />
+          <text class="v-label" x={cx(i)} y={ny(i) + 22} text-anchor="middle">{m.name}</text>
+          <text class="v-sub" x={cx(i)} y={ny(i) + 38} text-anchor="middle">{m.how.length > 32 ? m.how.slice(0, 31) + '…' : m.how}</text>
+        </g>
+      ))}
+      <path class="v-edge rev-bracket" d={`M${bx1},${by - 8} V${by} H${bx2} V${by - 8}`} />
+      <text class="v-mono" x={(bx1 + bx2) / 2} y={by + 18} text-anchor="middle">Typical NOC flagship bundle (page inference)</text>
+    </svg>
+  </div>
+  <div class="viz-legend">
+    <span>Pattern: NOC flagship deals bundle platform + hosting + services in a multi-year framework</span>
+    <span><span class="tag">inference</span></span>
+  </div>
+  <div class="viz-readout" aria-live="polite" data-readout>
+    <p><strong>Seven ways to charge a NOC for software.</strong> Moving right, risk shifts from the NOC paying upfront to the vendor being paid on outcomes. Tap a model to see its pros and cons from the chosen side.</p>
+  </div>
+  <script type="application/json" data-rev-data set:html={data} />
+</section>
+
+<style>
+  .rev-head { fill: var(--edge-doc); }
+  .rev-dot { fill: var(--paper-2); stroke: var(--ink); stroke-width: 1.5; }
+  .v-hit.is-hot .rev-dot { fill: var(--accent); stroke: var(--accent); }
+  .rev-bracket { stroke: var(--accent); }
+  .only-small { display: none; }
+  @media (max-width: 799px) { .only-small { display: inline; } }
+  .viz-controls .seg button { min-height: 44px; }
+  .rev-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 24px; margin: 6px 0; }
+  .rev-cols div { border-top: 1px solid var(--rule); padding-top: 6px; }
+  @media (max-width: 599px) { .rev-cols { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+  type Side = { pro: string; con: string };
+  type M = { id: string; name: string; how: string; examples: string; noc: Side; vendor: Side };
+  for (const root of document.querySelectorAll<HTMLElement>('[data-viz="revenue"]')) {
+    const models = JSON.parse(root.querySelector('[data-rev-data]')!.textContent!) as M[];
+    const nodes = [...root.querySelectorAll<SVGGElement>('[data-node]')];
+    const readout = root.querySelector<HTMLElement>('[data-readout]')!;
+    const initial = readout.innerHTML;
+    let view: 'noc' | 'vendor' = 'noc';
+    let selected: string | null = null;
+
+    const show = (id: string | null = selected) => {
+      nodes.forEach((n) => { n.classList.toggle('is-hot', n.dataset.node === id); n.classList.toggle('is-dim', !!id && n.dataset.node !== id); });
+      if (!id) { readout.innerHTML = initial; return; }
+      const m = models.find((x) => x.id === id)!, s = m[view], who = view === 'noc' ? 'NOC' : 'vendor';
+      readout.innerHTML = `<h3>${m.name}</h3>
+        <p><span class="eyebrow">How it works</span><br>${m.how}</p>
+        <div class="rev-cols"><div><span class="eyebrow">Pros for ${who}</span><br>${s.pro}</div><div><span class="eyebrow">Cons for ${who}</span><br>${s.con}</div></div>
+        <p><span class="eyebrow">Vendor examples</span><br>${m.examples}</p>`;
+    };
+
+    root.querySelectorAll<HTMLButtonElement>('[data-view]').forEach((b) => b.addEventListener('click', () => {
+      view = b.dataset.view as 'noc' | 'vendor';
+      root.querySelectorAll('[data-view]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      show();
+    }));
+    nodes.forEach((n) => {
+      const pick = () => { selected = selected === n.dataset.node ? null : n.dataset.node!; show(); };
+      n.addEventListener('click', pick);
+      n.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+      n.addEventListener('mouseenter', () => show(n.dataset.node!));
+      n.addEventListener('focus', () => show(n.dataset.node!));
+    });
+    root.querySelector('svg')!.addEventListener('mouseleave', () => show());
+  }
+</script>

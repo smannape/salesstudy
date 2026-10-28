@@ -1,0 +1,169 @@
+---
+// Vocabulary map: use/avoid terms from src/content/pages/keywords.md, grouped by source, with a rewrite toggle.
+type Group = { side: 'use' | 'avoid'; name: string; why: string; src?: { label: string; href: string }; terms: string[] };
+const groups: Group[] = [
+  { side: 'use', name: 'Value narrative', why: 'Command of the Message language: frame negative consequences, positive outcomes and required capabilities, and back them with metrics and proof.',
+    src: { label: 'Rework', href: 'https://resources.rework.com/libraries/pipeline-management/command-of-the-message' },
+    terms: ['negative consequences', 'positive business outcomes', 'required capabilities', 'metrics with baseline and target', 'proof points'] },
+  { side: 'use', name: 'Business case', why: 'Executive business case vocabulary: lead with the cost of inaction, show current vs target, tie it to payback, and end with one clear ask.',
+    src: { label: 'Mutiny', href: 'https://www.mutinyhq.com/blueprints/executive-business-case' },
+    terms: ['cost of inaction', 'current state vs target state', 'payback period', 'required investment', 'one clear ask'] },
+  { side: 'use', name: 'Risk reduction', why: 'Use risk-reduction language for buyers afraid of messing up (FOMU), rather than adding more ROI slides.',
+    src: { label: 'Challenger Inc.', href: 'https://challengerinc.com/losing-to-customer-indecision/' },
+    terms: ['realistic expectations', 'safety net', 'accountability'] },
+  { side: 'use', name: 'NOC-specific', why: 'Terms drawn from the Gulf NOC priority tiers on the long-term strategy page.',
+    src: { label: 'Priority tiers', href: '/long-term-strategy/' },
+    terms: ['deployment-ready', 'scaled', 'OSDU-compliant', 'sovereign/private cloud', 'IT/OT integration', 'production uplift', 'digital twin', 'national capability building'] },
+  { side: 'avoid', name: 'Buzzwords', why: '88% of buyers say buzzwords damage credibility.',
+    src: { label: 'The Insight Collective', href: 'https://www.theinsightcollective.com/insights/overused-b2b-buzzwords' },
+    terms: ['synergy', 'paradigm shift', 'game-changing', 'disruptive', 'cutting-edge', 'innovative solution', 'best-of-breed', 'world-class', 'low-hanging fruit', 'passionate about delivering', 'customer-centric'] },
+  { side: 'avoid', name: 'AI-generated tells', why: 'These phrases mark copy as AI-written. 19% of buyers lost confidence after inaccurate AI results.',
+    terms: ['In the rapidly evolving world of…', 'let’s delve into…'] },
+  { side: 'avoid', name: 'Commoditised AI', why: '"AI-powered" and "machine learning at scale" no longer differentiate.',
+    terms: ['AI-powered', 'machine learning at scale'] },
+  { side: 'avoid', name: 'Pilot', why: 'Say "deployment" instead. This is an inference from ADIPEC framing; "pilot" now reads as a negative signal to NOC buyers.',
+    terms: ['pilot'] }
+];
+---
+<section class="viz" aria-labelledby="viz-kw-title" data-viz-kw>
+  <div class="viz-head">
+    <h2 id="viz-kw-title">Vocabulary map</h2>
+    <p class="viz-hint">Filter by use or avoid, then tap a term to see why.</p>
+  </div>
+  <div class="viz-controls">
+    <div class="seg" role="group" aria-label="Filter terms">
+      <button type="button" data-kw-filter="all" aria-pressed="true">All</button>
+      <button type="button" data-kw-filter="use" aria-pressed="false">Use</button>
+      <button type="button" data-kw-filter="avoid" aria-pressed="false">Avoid</button>
+    </div>
+  </div>
+
+  <div class="viz-stage kw-stage">
+    {(['use', 'avoid'] as const).map((side) => (
+      <div class={`kw-side kw-${side}`} data-kw-side={side}>
+        <div class="kw-side-head">
+          <span class="eyebrow">{side === 'use' ? 'Use: lands with 2025–26 buyers' : 'Avoid: costs credibility'}</span>
+          {side === 'avoid' && (
+            <div class="kw-meter" title="88% of buyers say buzzwords damage credibility">
+              <span class="kw-meter-bar"><i style="width:88%"></i></span>
+              <span class="kw-meter-v num">88%</span>
+              <span class="kw-meter-l">of buyers say buzzwords damage credibility</span>
+            </div>
+          )}
+        </div>
+        {groups.filter((g) => g.side === side).map((g) => (
+          <div class="kw-group">
+            <p class="kw-gname">{g.name}{g.name === 'Pilot' && <span class="tag" style="margin-left:6px">inference</span>}</p>
+            <div class="kw-chips">
+              {g.terms.map((t) => (
+                <button type="button" class="kw-chip" data-term={t} data-group={g.name} data-side={side} data-why={g.why}
+                  data-src={g.src?.label} data-href={g.src?.href} aria-pressed="false">{t}</button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    ))}
+  </div>
+
+  <div class="kw-rewrite">
+    <div class="kw-rw-head">
+      <span class="eyebrow">Rewrite example</span>
+      <div class="seg" role="group" aria-label="Rewrite example">
+        <button type="button" data-rw="before" aria-pressed="true">Before</button>
+        <button type="button" data-rw="after" aria-pressed="false">After</button>
+      </div>
+    </div>
+    <p class="kw-rw-text" data-rw-text="before">“<mark class="kw-bad">cutting-edge</mark> <mark class="kw-bad">AI-powered</mark> analytics for <mark class="kw-bad">world-class</mark> enterprises”</p>
+    <p class="kw-rw-text" data-rw-text="after" hidden>“our analytics software helps retailers predict stockouts <mark class="kw-good">up to two weeks in advance</mark>, reducing lost sales <mark class="kw-good">by 20%</mark>”</p>
+    <p class="kw-rw-src">Source: <a href="https://www.theinsightcollective.com/insights/overused-b2b-buzzwords" rel="noopener">The Insight Collective</a></p>
+  </div>
+
+  <div class="viz-legend">
+    <span><i class="kw-lg-use"></i>Use</span>
+    <span><i class="kw-lg-avoid"></i>Avoid</span>
+    <span><i class="kw-lg-good"></i>Measurable claim</span>
+  </div>
+  <div class="viz-readout" aria-live="polite" data-readout>
+    <p>Buyers want proven outcomes, not promises: ROI data, customer references and verified performance metrics, plus case studies that explain how the results were achieved.</p>
+  </div>
+</section>
+
+<style>
+  .kw-stage { display: grid; grid-template-columns: 1fr 1fr; }
+  .kw-side { padding: 16px 18px 18px; min-width: 0; transition: opacity var(--dur) var(--ease); }
+  .kw-avoid { border-left: 1px solid var(--rule); background: var(--paper); }
+  .kw-side[hidden] { display: none; }
+  .kw-side-head { display: flex; flex-direction: column; gap: 10px; padding-bottom: 12px; border-bottom: 1px solid var(--rule); margin-bottom: 4px; }
+  .kw-meter { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; }
+  .kw-meter-bar { height: 6px; background: var(--paper-3); position: relative; }
+  .kw-meter-bar i { position: absolute; inset: 0 auto 0 0; background: var(--red); }
+  .kw-meter-v { font: 600 18px/1 var(--display); color: var(--red); }
+  .kw-meter-l { grid-column: 1 / -1; font-size: 12px; color: var(--ink-2); }
+  .kw-group { padding: 10px 0 4px; }
+  .kw-gname { margin: 0 0 8px; font: 500 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+  .kw-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .kw-chip { min-height: 44px; padding: 6px 12px; border: 1px solid var(--ink); background: var(--paper-2); color: var(--ink); font: 400 14px/1.25 var(--sans); cursor: pointer; text-align: left; transition: background var(--dur) var(--ease), color var(--dur) var(--ease), opacity var(--dur) var(--ease); }
+  .kw-chip:hover { border-color: var(--accent); color: var(--accent); }
+  .kw-chip[data-side="avoid"] { border-color: var(--rule); color: var(--ink-2); text-decoration: line-through; text-decoration-color: var(--red); }
+  .kw-chip[data-side="avoid"]:hover { border-color: var(--red); color: var(--red); }
+  .kw-chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .kw-chip[data-side="avoid"][aria-pressed="true"] { background: var(--red); border-color: var(--red); color: var(--paper); text-decoration: none; }
+  .kw-stage.has-sel .kw-chip:not([aria-pressed="true"]):not(.same) { opacity: .4; }
+  .kw-rewrite { border: 1px solid var(--rule); border-top: 0; padding: 14px 18px 12px; background: var(--paper-2); }
+  .kw-rw-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+  .kw-rw-text { margin: 14px 0 6px; font: 500 clamp(18px, 2.6vw, 22px)/1.4 var(--display); letter-spacing: -.01em; max-width: 60ch; }
+  .kw-rw-text[hidden] { display: none; }
+  .kw-bad { background: var(--red-soft); color: var(--red); box-shadow: none; text-decoration: line-through; padding: 0 2px; }
+  .kw-good { background: var(--green-soft); color: var(--green); box-shadow: 0 1px 0 var(--green); padding: 0 2px; }
+  .kw-rw-src { margin: 0; font: 400 12px var(--mono); color: var(--ink-2); }
+  .kw-rw-src a { color: var(--ink-2); }
+  .kw-lg-use { background: var(--accent) !important; }
+  .kw-lg-avoid { background: var(--red) !important; }
+  .kw-lg-good { background: var(--green) !important; }
+  @media (max-width: 699px) {
+    .kw-stage { grid-template-columns: 1fr; }
+    .kw-avoid { border-left: 0; border-top: 1px solid var(--rule); }
+    .kw-side { padding: 14px 12px; }
+    .kw-rewrite { padding: 12px; }
+  }
+</style>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-viz-kw]');
+  if (root) {
+    const readout = root.querySelector<HTMLElement>('[data-readout]')!;
+    const stage = root.querySelector<HTMLElement>('.kw-stage')!;
+    const chips = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-term]'));
+    const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+
+    chips.forEach((c) => c.addEventListener('click', () => {
+      const was = c.getAttribute('aria-pressed') === 'true';
+      chips.forEach((o) => {
+        o.setAttribute('aria-pressed', String(!was && o === c));
+        o.classList.toggle('same', !was && o.dataset.group === c.dataset.group);
+      });
+      stage.classList.toggle('has-sel', !was);
+      if (was) return;
+      const verb = c.dataset.side === 'use' ? 'Use' : 'Avoid';
+      const src = c.dataset.href ? ` <a href="${esc(c.dataset.href)}">${esc(c.dataset.src!)}</a>` : '';
+      readout.innerHTML = `<h3>${verb}: “${esc(c.dataset.term!)}”</h3><p><span class="eyebrow">${esc(c.dataset.group!)}</span></p><p>${esc(c.dataset.why!)}${src ? ' Source:' + src : ''}</p>`;
+    }));
+
+    const filters = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-kw-filter]'));
+    const sides = Array.from(root.querySelectorAll<HTMLElement>('[data-kw-side]'));
+    filters.forEach((b) => b.addEventListener('click', () => {
+      filters.forEach((f) => f.setAttribute('aria-pressed', String(f === b)));
+      const f = b.dataset.kwFilter;
+      sides.forEach((s) => (s.hidden = f !== 'all' && s.dataset.kwSide !== f));
+      stage.style.gridTemplateColumns = f === 'all' ? '' : '1fr';
+    }));
+
+    const rw = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-rw]'));
+    const texts = Array.from(root.querySelectorAll<HTMLElement>('[data-rw-text]'));
+    rw.forEach((b) => b.addEventListener('click', () => {
+      rw.forEach((r) => r.setAttribute('aria-pressed', String(r === b)));
+      texts.forEach((t) => (t.hidden = t.dataset.rwText !== b.dataset.rw));
+    }));
+  }
+</script>

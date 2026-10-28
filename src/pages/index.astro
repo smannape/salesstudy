@@ -1,11 +1,11 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
-import Card from '../components/Card.astro';
 import NewsItem from '../components/NewsItem.astro';
 import { extractCards } from '../lib/cards';
 import { newsByWeek } from '../lib/news';
 import { formatDate, weekLabel } from '../lib/dates';
+import { shortTitle } from '../lib/short';
 import events from '../data/events.json';
 
 const pages = (await getCollection('pages')).sort((a, b) => a.data.order - b.data.order);
@@ -16,72 +16,142 @@ const latestItems = latest
   ? [...(byWeek.get(latest) ?? [])].sort((a, b) => b.data.relevance - a.data.relevance || b.data.date.localeCompare(a.data.date)).slice(0, 5)
   : [];
 const dated = events.filter((e) => e.start).sort((a, b) => a.start!.localeCompare(b.start!));
+const undated = events.filter((e) => !e.start);
+
+// Event strip spans the first to last dated event, padded a fortnight each side (integer UTC maths only).
+const utc = (iso: string) => { const [y, m, d] = iso.split('-').map(Number); return Date.UTC(y, m - 1, d); };
+const DAY = 86400000;
+const t0 = utc(dated[0].start!) - 14 * DAY;
+const t1 = utc(dated[dated.length - 1].end!) + 21 * DAY;
+const pct = (t: number) => ((t - t0) / (t1 - t0)) * 100;
+const months: { label: string; left: number }[] = [];
+{
+  const d = new Date(t0);
+  let y = d.getUTCFullYear(), m = d.getUTCMonth() + 1;
+  for (;;) {
+    m++; if (m > 12) { m = 1; y++; }
+    const t = Date.UTC(y, m - 1, 1);
+    if (t > t1) break;
+    months.push({ label: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][m - 1], left: pct(t) });
+  }
+}
+const kindCount = { Checklist: cards.filter((c) => c.kind === 'Checklist').length, Questions: cards.filter((c) => c.kind !== 'Checklist').length };
 ---
 <Base title="Sales Hub">
   <header class="page-head">
-    <div class="eyebrow">Today</div>
+    <div class="eyebrow">Today · <span data-today-label>28 Oct 2026</span></div>
     <h1>Ten minutes of selling, every day</h1>
-    <p class="lede">One reference card per day, rotated from <span class="num">{cards.length}</span> checklists and question lists across the eleven pages, plus this week's NOC digital news.</p>
+    <p class="lede">One reference card per day, rotated from {cards.length} checklists and question lists across the eleven pages, plus this week's NOC digital news.</p>
   </header>
 
-  <div class="workbench">
-    <div class="stack">
-      <section class="panel card" aria-labelledby="cotd-title" data-cotd>
-        <div class="section-header" style="margin:-20px -20px 8px;">
-          <span class="eyebrow">Card of the day · <span class="num" data-cotd-date></span></span>
-          <span class="meta-row" style="margin:0"><button type="button" class="btn small" data-cotd-prev aria-label="Previous card">‹</button><button type="button" class="btn small" data-cotd-next aria-label="Next card">›</button></span>
-        </div>
-        {cards.map((c, i) => (
-          <div data-card={i} hidden={i !== 0}>
-            <div class="meta-row"><span class={c.kind === 'Checklist' ? 'tag success' : 'tag'}>{c.kind}</span><a class="small tap" href={`/${c.page}/`}>{c.pageTitle}</a></div>
-            <h2 id={i === 0 ? 'cotd-title' : undefined} style="margin:6px 0 10px">{c.title}</h2>
-            <ol class="running-text" style="padding-left:22px;margin:0">
-              {c.items.map((it) => <li set:html={it} />)}
-            </ol>
-          </div>
-        ))}
-      </section>
+  <div class="stats">
+    <div class="stat"><b class="num">{cards.length}</b><span>Cards in rotation</span></div>
+    <div class="stat"><b class="num" data-doy>–</b><span>Day of the year</span></div>
+    <div class="stat"><b class="num" data-next-days>–</b><span data-next-label>Days to next event</span></div>
+    <div class="stat"><b class="num">{latestItems.length}</b><span>News items this week</span></div>
+  </div>
 
-      <section>
-        <div class="section-header" style="padding:0">
-          <h2 style="margin:0">Latest news{latest && <span class="muted small" style="font-weight:400"> · {weekLabel(latest)}</span>}</h2>
-          <a href="/news/" class="small tap">All news →</a>
-        </div>
-        <div class="news-list" style="margin-top:12px">
-          {latestItems.length ? latestItems.map((n) => <NewsItem item={n} />) : <p class="muted">No news yet — the weekly agent runs on Mondays.</p>}
-        </div>
-      </section>
+  <section class="viz" aria-labelledby="cotd-title" data-cotd>
+    <div class="viz-head">
+      <h2 id="cotd-title">Card of the day</h2>
+      <p class="viz-hint"><span data-cotd-pos></span> · tap a tick to jump</p>
     </div>
+    <div class="ticks" role="tablist" aria-label="All cards" style={`grid-template-columns:repeat(${cards.length},minmax(0,1fr))`}>
+      {cards.map((c, i) => (
+        <button type="button" role="tab" class={`tick ${c.kind === 'Checklist' ? 'is-cl' : ''}`} data-tick={i} aria-label={`${c.title} (${shortTitle(c.page)})`} title={`${c.title} — ${shortTitle(c.page)}`}></button>
+      ))}
+    </div>
+    <div class="viz-legend"><span><i></i>Checklist · {kindCount.Checklist}</span><span><i style="background:var(--accent)"></i>Question list · {kindCount.Questions}</span><span><i style="background:var(--paper-3);box-shadow:inset 0 0 0 1px var(--ink)"></i>Today</span></div>
+    <div class="cotd">
+      {cards.map((c, i) => (
+        <div data-card={i} hidden={i !== 0}>
+          <div class="cotd-meta"><span class={c.kind === 'Checklist' ? 'tag success' : 'tag'}>{c.kind}</span><a class="tap small" href={`/${c.page}/`}>{c.pageTitle} →</a></div>
+          <h3 class="cotd-title">{c.title}</h3>
+          <ol class="cotd-list">
+            {c.items.map((it) => <li set:html={it} />)}
+          </ol>
+        </div>
+      ))}
+      <div class="cotd-nav">
+        <button type="button" class="btn small" data-cotd-prev aria-label="Previous card">← Prev</button>
+        <button type="button" class="btn small" data-cotd-today>Today's card</button>
+        <button type="button" class="btn small" data-cotd-next aria-label="Next card">Next →</button>
+      </div>
+    </div>
+  </section>
 
-    <aside class="rail">
-      <section class="panel" data-events>
-        <div class="eyebrow">Next event</div>
-        {dated.map((e) => (
-          <div data-event data-start={e.start} data-end={e.end} hidden>
-            <h3 style="margin:6px 0 4px">{e.url ? <a href={e.url} rel="noopener">{e.name}</a> : e.name}</h3>
-            <div class="small muted"><time datetime={e.start!} class="num">{formatDate(e.start!)}</time>–<span class="num">{formatDate(e.end!)}</span> · {e.location}</div>
-            <div class="kpi-value num" style="margin-top:8px" data-countdown></div>
-            {e.note && <p class="small muted" style="margin:6px 0 0">{e.note}</p>}
-            {e.ref && <p class="small" style="margin:6px 0 0"><a class="tap" href={e.ref} rel="noopener">Source</a></p>}
-          </div>
-        ))}
-        <p class="small muted" data-no-event hidden style="margin:6px 0 0">No dated events ahead. KOGS, OPEC and Kuwait budget dates are still placeholders.</p>
-      </section>
-      <nav class="panel toc hide-mobile" aria-label="Pages">
-        <div class="eyebrow">Learn</div>
-        <ol>{pages.map((p) => <li><a href={`/${p.data.slug}/`}><span class="num muted" style="width:22px;flex:none">{p.data.order}</span>{p.data.title}</a></li>)}</ol>
-      </nav>
-    </aside>
-  </div>
+  <section class="viz" aria-labelledby="ev-title" data-events>
+    <div class="viz-head">
+      <h2 id="ev-title">Event horizon</h2>
+      <p class="viz-hint">Hover or tap an event; the line marks today.</p>
+    </div>
+    <div class="viz-stage viz-scroll">
+      <div class="evstrip" style="min-width:640px">
+        {months.map((m) => <span class="ev-month" style={`left:${m.left}%`}>{m.label}</span>)}
+        <span class="ev-today" data-today-line hidden><em>Today</em></span>
+        {dated.map((e, i) => {
+          const l = pct(utc(e.start!)), w = Math.max(0.8, pct(utc(e.end!) + DAY) - l);
+          return (
+            <button type="button" class="ev" style={`left:${l}%;width:${w}%;top:${44 + (i % 3) * 34}px`} data-ev={i} data-start={e.start} data-end={e.end} aria-label={`${e.name}, ${formatDate(e.start!)}`}>
+              <span>{e.name.replace(/ 20\d\d$/, '')}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+    <div class="viz-readout" aria-live="polite" data-ev-readout>
+      {dated.map((e, i) => (
+        <div data-ev-info={i} hidden>
+          <div class="eyebrow"><span class="num">{formatDate(e.start!)}–{formatDate(e.end!)}</span> · {e.location} · <span data-ev-count></span></div>
+          <h3>{e.url ? <a href={e.url} rel="noopener">{e.name}</a> : e.name}</h3>
+          {e.note && <p class="small muted">{e.note}</p>}
+          {e.ref && <p class="small"><a href={e.ref} rel="noopener">Source</a></p>}
+        </div>
+      ))}
+      {undated.length > 0 && <p class="small muted" data-ev-default>Not yet dated: {undated.map((e) => e.name).join(' · ')}.</p>}
+    </div>
+  </section>
 
-  <h2>Quick links</h2>
-  <div class="grid tight">
-    {pages.map((p) => (
-      <Card href={`/${p.data.slug}/`} eyebrow={`${String(p.data.order).padStart(2, '0')} · ${p.data.readMinutes ?? '–'} min`} title={p.data.title} />
-    ))}
-    <Card href="/news/" eyebrow="12" title="News tracker" />
-  </div>
+  <section aria-labelledby="news-title">
+    <div class="section-header">
+      <h2 id="news-title" style="margin:0;font-size:20px">Latest news{latest && <span class="muted small" style="font-weight:400;font-family:var(--mono);font-size:12px"> · {weekLabel(latest)}</span>}</h2>
+      <a href="/news/" class="small tap">All news →</a>
+    </div>
+    <div class="news-list" style="border-top:0">
+      {latestItems.length ? latestItems.map((n) => <NewsItem item={n} />) : <p class="muted">No news yet. The weekly agent runs on Mondays.</p>}
+    </div>
+  </section>
 </Base>
+
+<style>
+  .ticks { display: grid; grid-template-columns: repeat(auto-fill, minmax(18px, 1fr)); gap: 3px; padding: 4px 0 10px; }
+  .tick { height: 30px; border: 0; padding: 0; cursor: pointer; background: var(--accent); opacity: .35; transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease); }
+  .tick.is-cl { background: var(--ink); }
+  .tick:hover { opacity: .8; }
+  .tick[aria-selected="true"] { opacity: 1; transform: scaleY(1.25); }
+  .tick.is-today { box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px var(--ink); }
+  @media (pointer: coarse) { .tick { height: 44px; } }
+  .cotd { border-top: 1px solid var(--rule); padding-top: 18px; }
+  .cotd-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .cotd-title { font-size: clamp(22px, 3vw, 28px); margin: 6px 0 14px; letter-spacing: -.02em; }
+  .cotd-list { margin: 0; padding: 0; list-style: none; counter-reset: c; columns: 2 320px; column-gap: 40px; }
+  .cotd-list li { counter-increment: c; display: grid; grid-template-columns: 32px 1fr; padding: 10px 0; border-bottom: 1px solid var(--rule); break-inside: avoid; line-height: 1.5; }
+  .cotd-list li::before { content: counter(c, decimal-leading-zero); font: 400 12px/1.9 var(--mono); color: var(--ink-3); }
+  .cotd-nav { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
+
+  .evstrip { position: relative; height: 170px; margin: 0 12px; }
+  .evstrip::before { content: ""; position: absolute; left: 0; right: 0; top: 30px; border-top: 1px solid var(--ink); }
+  .ev-month { position: absolute; top: 8px; font: 500 10.5px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); padding-left: 5px; border-left: 1px solid var(--rule); height: 160px; }
+  .ev-today { position: absolute; top: 22px; bottom: 0; border-left: 2px solid var(--accent); }
+  .ev-today em { position: absolute; top: -18px; left: -4px; font: 500 10px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); font-style: normal; white-space: nowrap; }
+  .ev { position: absolute; height: 28px; min-width: 10px; border: 0; padding: 0; background: var(--ink); cursor: pointer; }
+  .ev span { position: absolute; left: calc(100% + 6px); top: 50%; transform: translateY(-50%); white-space: nowrap; font: 500 12px var(--sans); color: var(--ink); }
+  .ev.is-past { background: var(--ink-3); }
+  .ev.is-past span { color: var(--ink-2); }
+  .ev.is-next { background: var(--accent); }
+  .ev:hover, .ev[aria-pressed="true"] { outline: 2px solid var(--accent); outline-offset: 2px; }
+  @media (pointer: coarse) { .ev { height: 32px; } }
+</style>
 
 <script>
   // Day-of-year from integer parts only (no Date string parsing — Safari §4.8). ?date=YYYY-MM-DD overrides for testing.
@@ -91,29 +161,67 @@ const dated = events.filter((e) => e.start).sort((a, b) => a.start!.localeCompar
   if (override && /^\d{4}-\d{2}-\d{2}$/.test(override)) [y, m, d] = override.split('-').map(Number);
   const today = Date.UTC(y, m - 1, d);
   const doy = Math.floor((today - Date.UTC(y, 0, 0)) / 86400000);
-
-  const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-card]'));
-  const dateEl = document.querySelector('[data-cotd-date]');
   const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  if (dateEl) dateEl.textContent = `${d} ${MONTHS[m - 1]} ${y} · day ${doy}`;
-  let current = cards.length ? doy % cards.length : 0;
+  const $ = <T extends Element = HTMLElement>(s: string) => document.querySelector<T>(s);
+  $('[data-today-label]')!.textContent = `${d} ${MONTHS[m - 1]} ${y}`;
+  $('[data-doy]')!.textContent = String(doy);
+
+  // Card of the day
+  const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-card]'));
+  const ticks = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-tick]'));
+  const pos = $('[data-cotd-pos]')!;
+  const todayIdx = cards.length ? doy % cards.length : 0;
+  ticks[todayIdx]?.classList.add('is-today');
+  let current = todayIdx;
   const show = (i: number) => {
     current = (i + cards.length) % cards.length;
     cards.forEach((c, j) => (c.hidden = j !== current));
+    ticks.forEach((t, j) => t.setAttribute('aria-selected', String(j === current)));
+    pos.textContent = `Card ${current + 1} of ${cards.length}${current === todayIdx ? ' · today' : ''}`;
   };
   show(current);
-  document.querySelector('[data-cotd-prev]')?.addEventListener('click', () => show(current - 1));
-  document.querySelector('[data-cotd-next]')?.addEventListener('click', () => show(current + 1));
+  ticks.forEach((t, i) => t.addEventListener('click', () => show(i)));
+  $('[data-cotd-prev]')?.addEventListener('click', () => show(current - 1));
+  $('[data-cotd-next]')?.addEventListener('click', () => show(current + 1));
+  $('[data-cotd-today]')?.addEventListener('click', () => show(todayIdx));
 
+  // Event strip
   const toUtc = (iso: string) => { const [a, b, c] = iso.split('-').map(Number); return Date.UTC(a, b - 1, c); };
-  const evs = Array.from(document.querySelectorAll<HTMLElement>('[data-event]'));
-  const next = evs.find((e) => toUtc(e.dataset.end!) >= today);
-  if (next) {
-    next.hidden = false;
-    const days = Math.round((toUtc(next.dataset.start!) - today) / 86400000);
-    const out = next.querySelector('[data-countdown]');
-    if (out) out.textContent = days > 0 ? `in ${days} day${days === 1 ? '' : 's'}` : 'happening now';
-  } else {
-    document.querySelector<HTMLElement>('[data-no-event]')!.hidden = false;
+  const strip = $('.evstrip')!;
+  const evs = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-ev]'));
+  const infos = Array.from(document.querySelectorAll<HTMLElement>('[data-ev-info]'));
+  const first = toUtc(evs[0].dataset.start!) - 14 * 86400000;
+  const last = toUtc(evs[evs.length - 1].dataset.end!) + 22 * 86400000;
+  const line = $('[data-today-line]')!;
+  if (today >= first && today <= last) { line.hidden = false; line.style.left = `${((today - first) / (last - first)) * 100}%`; }
+  const nextIdx = evs.findIndex((e) => toUtc(e.dataset.end!) >= today);
+  const until = (e: HTMLElement) => {
+    const days = Math.round((toUtc(e.dataset.start!) - today) / 86400000);
+    if (toUtc(e.dataset.end!) < today) return `${-days} days ago`;
+    return days > 0 ? `in ${days} day${days === 1 ? '' : 's'}` : 'happening now';
+  };
+  evs.forEach((e, i) => {
+    if (toUtc(e.dataset.end!) < today) e.classList.add('is-past');
+    if (i === nextIdx) e.classList.add('is-next');
+    infos[i].querySelector('[data-ev-count]')!.textContent = until(e);
+  });
+  const def = $('[data-ev-default]');
+  const select = (i: number) => {
+    evs.forEach((e, j) => e.setAttribute('aria-pressed', String(j === i)));
+    infos.forEach((n, j) => (n.hidden = j !== i));
+    if (def) def.hidden = i >= 0;
+  };
+  evs.forEach((e, i) => {
+    e.addEventListener('click', () => select(i));
+    e.addEventListener('mouseenter', () => select(i));
+  });
+  if (nextIdx >= 0) {
+    select(nextIdx);
+    const days = Math.round((toUtc(evs[nextIdx].dataset.start!) - today) / 86400000);
+    $('[data-next-days]')!.textContent = days > 0 ? String(days) : 'Now';
+    $('[data-next-label]')!.textContent = `Days to ${evs[nextIdx].textContent!.trim()}`;
+    // Bring the next event into view on narrow screens.
+    const sc = strip.parentElement!;
+    sc.scrollLeft = Math.max(0, evs[nextIdx].offsetLeft - sc.clientWidth / 3);
   }
 </script>

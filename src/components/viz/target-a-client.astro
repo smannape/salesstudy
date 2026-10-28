@@ -1,0 +1,165 @@
+---
+// Hero for "How to target a client": NOC decision map as a stakeholder network, plus the
+// LAMP Gold Sheet sections as clickable steps. Roles and controls come from the
+// "NOC decision map" table and "LAMP Gold Sheet structure" list in target-a-client.md.
+const W = 760, H = 440, cx = W / 2, cy = H / 2;
+const nw = 200, nh = 58;
+const roles = [
+  { key: 'sponsor', name: 'Business sponsor', sub: 'Budget owner', x: cx, y: 52, edge: 'Budget · business case · priority',
+    who: 'Asset or directorate manager; upstream CEO at ADNOC (Musabbeh Al Kaabi fronted ENERGYai).', controls: 'Budget, business case, priority.' },
+  { key: 'transform', name: 'Transformation owner', sub: 'AI / digital centre', x: 640, y: 150, edge: 'Architecture standards · PoCs',
+    who: 'KOC AI Innovation Center; PDO AI & Digital Transformation Task Force; Aramco Digital.', controls: 'Sets architecture standards (OSDU, cloud), runs PoCs.' },
+  { key: 'it', name: 'IT / Cyber', sub: 'NOC IT & cybersecurity', x: 640, y: 330, edge: 'Data residency · can veto SaaS',
+    who: 'NOC IT and cybersecurity.', controls: 'Data residency, certification, integration with Petrel/Landmark/PI/SAP; can veto public-cloud SaaS.' },
+  { key: 'proc', name: 'Procurement', sub: 'Contracts / tender committee', x: 120, y: 330, edge: 'Prequal · ICV scoring · bonds',
+    who: 'Contracts department, tender committee.', controls: 'Registration, prequalification, ICV/IKTVA scoring, two-envelope evaluation, bonds.' },
+  { key: 'gates', name: 'Third-party gates', sub: 'ICV · IKTVA · CCC', x: 120, y: 150, edge: 'Certification lead times',
+    who: 'ICV certifiers, IKTVA auditors, CCC audit firms.', controls: 'Each with its own lead time.' }
+];
+// Label position: midpoint between the deal and the role.
+const mid = (r: typeof roles[number]) => ({ x: (r.x + cx) / 2, y: (r.y + cy) / 2 });
+const lamp = [
+  { t: 'Current account picture', d: 'Expected vs achieved outcomes, unproven value, business changes, approaching decisions.' },
+  { t: 'Stakeholder map', d: 'Role, influence, stance (supportive / neutral / resistant / unknown), priorities, relationship strength.' },
+  { t: 'Team position & vulnerabilities', d: 'Critical vulnerabilities — e.g. single-champion dependence, no executive relationship.' },
+  { t: 'Charter statement', d: 'Measurable, with target outcomes, scope, future position, planning period, mutual value, boundaries; not “trusted strategic partner”.' },
+  { t: 'Focus & STOP investments', d: 'Focus: senior IT/finance access, quantifying adoption impact, a regional pilot. STOP: generic demos without a validated use case, speculative expansion on weak signals.' },
+  { t: 'Five linked goals', d: 'Relationship, customer outcome, strategic initiative, revenue target (e.g. $480K→$900K over 18 months tied to milestones), risk reduction.' },
+  { t: 'Action register', d: 'What, why, owner, participants, expected customer outcome, due date, completion evidence, next decision triggered.' }
+];
+---
+<section class="viz tc-viz" aria-labelledby="tc-viz-title">
+  <div class="viz-head">
+    <h2 id="tc-viz-title">Who decides what inside a Gulf NOC <span class="tag">inference</span></h2>
+    <p class="viz-hint">Hover or tap a role to isolate it. Scroll sideways on small screens.</p>
+  </div>
+  <div class="viz-stage viz-scroll">
+    <svg viewBox={`0 0 ${W} ${H}`} class="tc-svg" role="group" aria-label="NOC decision map">
+      <rect x="0" y="0" width={W} height={H} class="tc-bg" />
+      <g class="tc-edges">
+        <path d={`M${roles[4].x} ${roles[4].y + nh / 2} L${roles[3].x} ${roles[3].y - nh / 2}`} class="v-edge inf" data-edge="gates proc" />
+        <text x={roles[4].x + 8} y={(roles[4].y + roles[3].y) / 2 + 4} class="v-sub" data-edge="gates proc">feed scoring</text>
+        {roles.map((r) => (
+          <path d={`M${cx} ${cy} L${r.x} ${r.y}`} class="v-edge" data-edge={r.key} />
+        ))}
+      </g>
+      {roles.map((r) => {
+        const m = mid(r);
+        const len = r.edge.length * 6.3 + 14;
+        return (
+          <g class="tc-elabel" data-edge={r.key}>
+            <rect x={m.x - len / 2} y={m.y - 10} width={len} height="20" class="tc-chip" />
+            <text x={m.x} y={m.y + 4} text-anchor="middle" class="v-mono">{r.edge}</text>
+          </g>
+        );
+      })}
+      <g class="tc-deal">
+        <circle cx={cx} cy={cy} r="46" class="tc-deal-c" />
+        <text x={cx} y={cy - 2} text-anchor="middle" class="tc-deal-t">THE DEAL</text>
+        <text x={cx} y={cy + 14} text-anchor="middle" class="tc-deal-s">your opportunity</text>
+      </g>
+      {roles.map((r) => (
+        <g class="v-hit" data-role={r.key} tabindex="0" role="button" aria-label={`${r.name}: ${r.controls}`}>
+          <rect x={r.x - nw / 2} y={r.y - nh / 2} width={nw} height={nh} class="v-node" />
+          <text x={r.x} y={r.y - 3} text-anchor="middle" class="v-label">{r.name}</text>
+          <text x={r.x} y={r.y + 15} text-anchor="middle" class="v-sub">{r.sub}</text>
+        </g>
+      ))}
+    </svg>
+  </div>
+  <div class="viz-legend">
+    <span><i></i>Solid — controls a gate on the deal</span>
+    <span><i class="dash"></i>Dashed — third-party certificates feed procurement scoring</span>
+  </div>
+  {roles.map((r) => (
+    <template data-role-tpl={r.key}><h3>{r.name}</h3><p><b>Who:</b> {r.who}</p><p><b>Controls:</b> {r.controls}</p></template>
+  ))}
+
+  <div class="tc-lamp">
+    <div class="tc-lamp-cap"><span class="tc-mono">LAMP Gold Sheet — 7 sections</span></div>
+    <ol class="tc-steps">
+      {lamp.map((s, i) => (
+        <li><button type="button" data-lamp={i} aria-pressed="false"><span class="tc-mono">{String(i + 1).padStart(2, '0')}</span><b>{s.t}</b></button></li>
+      ))}
+    </ol>
+  </div>
+  {lamp.map((s, i) => (
+    <template data-lamp-tpl={i}><h3>Gold Sheet {String(i + 1).padStart(2, '0')} · {s.t}</h3><p>{s.d}</p></template>
+  ))}
+  <div class="viz-readout" aria-live="polite" data-readout>
+    <p>Hover or tap a role to see who sits there and what they control, or pick a Gold Sheet section below the map.</p>
+  </div>
+</section>
+
+<style>
+  .tc-svg { min-width: 640px; }
+  .tc-bg { fill: var(--paper-2); }
+  .tc-chip { fill: var(--paper-2); stroke: var(--rule); }
+  .tc-deal-c { fill: var(--ink); }
+  .tc-deal-t { fill: var(--paper); font: 600 12px var(--mono); letter-spacing: .08em; }
+  .tc-deal-s { fill: var(--paper); opacity: .7; font: italic 400 10.5px var(--sans); }
+  .viz-legend i.dash { background: none; border-top: 2px dashed var(--edge-inf); height: 0; width: 18px; vertical-align: 3px; }
+  .viz-legend i:not(.dash) { height: 2px; width: 18px; vertical-align: 3px; }
+  .tc-lamp { border: 1px solid var(--rule); border-top: 0; background: var(--paper-2); padding: 12px 16px 16px; }
+  .tc-mono { font: 500 11px/1.4 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+  .tc-steps { list-style: none; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); position: relative; }
+  .tc-steps::before { content: ""; position: absolute; left: 0; right: 0; top: 22px; height: 1px; background: var(--ink); }
+  .tc-steps li { margin: 0; position: relative; }
+  .tc-steps button { width: 100%; min-height: 88px; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 14px 10px 10px 0; text-align: left; border: 0; background: none; cursor: pointer; color: var(--ink); }
+  .tc-steps button::before { content: ""; position: absolute; top: 16px; left: 0; width: 12px; height: 12px; border-radius: 50%; background: var(--paper-2); border: 2px solid var(--ink); }
+  .tc-steps button .tc-mono { margin-top: 18px; }
+  .tc-steps b { font: 600 13.5px/1.25 var(--display); }
+  .tc-steps button:hover b { color: var(--accent); }
+  .tc-steps button[aria-pressed="true"]::before { background: var(--accent); border-color: var(--accent); }
+  .tc-steps button[aria-pressed="true"] b { color: var(--accent); }
+  @media (max-width: 799px) {
+    .tc-steps { grid-template-columns: 1fr; }
+    .tc-steps::before { left: 5px; right: auto; top: 0; bottom: 0; width: 1px; height: auto; }
+    .tc-steps button { flex-direction: row; align-items: center; min-height: 48px; padding: 8px 0 8px 26px; }
+    .tc-steps button::before { top: 50%; margin-top: -6px; }
+    .tc-steps button .tc-mono { margin-top: 0; }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('.tc-viz').forEach((root) => {
+    const readout = root.querySelector<HTMLElement>('[data-readout]')!;
+    const nodes = Array.from(root.querySelectorAll<SVGGElement>('[data-role]'));
+    const edges = Array.from(root.querySelectorAll<SVGElement>('[data-edge]'));
+    let pinned: string | null = null;
+    const fill = (sel: string) => {
+      const tpl = root.querySelector<HTMLTemplateElement>(sel);
+      if (tpl) readout.replaceChildren(tpl.content.cloneNode(true));
+    };
+    const focus = (key: string | null) => {
+      nodes.forEach((n) => {
+        n.classList.toggle('is-hot', n.dataset.role === key);
+        n.classList.toggle('is-dim', !!key && n.dataset.role !== key);
+      });
+      edges.forEach((e) => {
+        const keys = (e.dataset.edge || '').split(' ');
+        const on = !!key && keys.includes(key);
+        e.classList.toggle('is-hot', on && e.tagName === 'path');
+        e.classList.toggle('is-dim', !!key && !on);
+      });
+      if (key) fill(`[data-role-tpl="${key}"]`);
+    };
+    nodes.forEach((n) => {
+      const key = n.dataset.role!;
+      n.addEventListener('mouseenter', () => focus(key));
+      n.addEventListener('mouseleave', () => focus(pinned));
+      n.addEventListener('focus', () => focus(key));
+      const pin = () => { pinned = pinned === key ? null : key; focus(pinned ?? key); };
+      n.addEventListener('click', pin);
+      n.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pin(); } });
+    });
+
+    const steps = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-lamp]'));
+    steps.forEach((s) => s.addEventListener('click', () => {
+      steps.forEach((x) => x.setAttribute('aria-pressed', String(x === s)));
+      pinned = null;
+      focus(null);
+      fill(`[data-lamp-tpl="${s.dataset.lamp}"]`);
+    }));
+  });
+</script>

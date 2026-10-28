@@ -1,74 +1,68 @@
 ---
 import { getCollection } from 'astro:content';
+import { shortTitle } from '../lib/short';
 
 const pages = (await getCollection('pages')).sort((a, b) => a.data.order - b.data.order);
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
-const links = [
+const tabs = [
   { href: '/', label: 'Today' },
-  { href: '/learn/', label: 'Learn' },
+  { href: '/learn/', label: 'Overview' },
+  ...pages.map((p) => ({ href: `/${p.data.slug}/`, label: shortTitle(p.data.slug), n: String(p.data.order).padStart(2, '0') })),
   { href: '/news/', label: 'News' },
-  { href: '/sources/', label: 'Sources' },
-  { href: '/search/', label: 'Search' }
+  { href: '/sources/', label: 'Sources' }
 ];
-const isLearn = pages.some((p) => `/${p.data.slug}` === path);
 const current = (href: string) => {
   const h = href.replace(/\/$/, '') || '/';
   if (h === '/') return path === '/';
-  if (h === '/learn') return path === '/learn' || isLearn;
   return path === h || path.startsWith(h + '/');
 };
 ---
-<header class="navbar">
-  <a class="brand" href="/"><span class="brand-mark" aria-hidden="true"></span>Sales Hub</a>
-  <nav class="nav-links" aria-label="Primary">
-    {links.map((l) => (
-      <a class="nav-link" href={l.href} aria-current={current(l.href) ? 'page' : undefined}>{l.label}</a>
-    ))}
+<header class="topbar">
+  <div class="topbar-row">
+    <a class="brand" href="/">Sales Hub <span>reference</span></a>
+    <span class="spacer"></span>
+    <a class="top-search" href="/search/" data-search-link>Search<span class="k">&nbsp;(press /)</span></a>
+    <button type="button" class="icon-btn" data-theme-toggle aria-label="Switch to dark theme" title="Toggle theme">
+      <span><svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 12.5V2.5a5.5 5.5 0 0 1 0 11z"/></svg></span>
+    </button>
+  </div>
+  <nav class="tabs" aria-label="Sections">
+    <ol>
+      {tabs.map((t) => (
+        <li><a href={t.href} aria-current={current(t.href) ? 'page' : undefined}>{t.n && <span class="n">{t.n}</span>}{t.label}</a></li>
+      ))}
+    </ol>
   </nav>
-  <span class="spacer"></span>
-  <button type="button" class="nav-btn" data-theme-toggle aria-label="Switch to light theme" title="Toggle theme">
-    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 12.5V2.5a5.5 5.5 0 0 1 0 11z"/></svg>
-  </button>
-  <button type="button" class="nav-btn nav-menu-btn" data-sheet-open aria-label="Open menu" aria-expanded="false" aria-controls="nav-sheet">
-    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><rect x="1" y="3" width="14" height="1.6" rx=".8"/><rect x="1" y="7.2" width="14" height="1.6" rx=".8"/><rect x="1" y="11.4" width="14" height="1.6" rx=".8"/></svg>
-  </button>
+  <div class="asof"><p>As of 28 Oct 2026 · Private reference · Gulf NOC E&amp;P software</p></div>
 </header>
-<div class="sheet-backdrop" data-sheet-close hidden></div>
-<div class="sheet" id="nav-sheet" role="dialog" aria-label="Menu" hidden>
-  <p class="eyebrow">Navigate</p>
-  {links.map((l) => <a href={l.href} aria-current={current(l.href) ? 'page' : undefined}>{l.label}</a>)}
-  <p class="eyebrow">Learn</p>
-  {pages.map((p) => <a href={`/${p.data.slug}/`}>{p.data.order}. {p.data.title}</a>)}
-</div>
 
 <script>
   const root = document.documentElement;
   const toggle = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
   const meta = document.querySelector('meta[name="theme-color"]');
   const sync = () => {
-    const t = root.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+    const t = root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
     toggle?.setAttribute('aria-label', t === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
-    meta?.setAttribute('content', t === 'light' ? '#f6f7f9' : '#1c2127');
+    meta?.setAttribute('content', t === 'dark' ? '#000000' : '#F4F4F2');
   };
   sync();
   toggle?.addEventListener('click', () => {
-    const next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
     root.setAttribute('data-theme', next);
     try { localStorage.setItem('theme', next); } catch {}
     sync();
+    document.dispatchEvent(new CustomEvent('themechange'));
   });
 
-  const sheet = document.getElementById('nav-sheet');
-  const backdrop = document.querySelector<HTMLElement>('.sheet-backdrop');
-  const openBtn = document.querySelector<HTMLButtonElement>('[data-sheet-open]');
-  const setOpen = (open: boolean) => {
-    if (!sheet || !backdrop) return;
-    sheet.hidden = !open;
-    backdrop.hidden = !open;
-    openBtn?.setAttribute('aria-expanded', String(open));
-    if (open) sheet.querySelector('a')?.focus();
-  };
-  openBtn?.addEventListener('click', () => setOpen(true));
-  backdrop?.addEventListener('click', () => setOpen(false));
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setOpen(false); });
+  // Keep the current tab visible in the horizontally scrolling strip.
+  document.querySelector<HTMLElement>('.tabs a[aria-current="page"]')?.scrollIntoView({ block: 'nearest', inline: 'center' });
+
+  // "/" jumps to search, like the reference site.
+  document.addEventListener('keydown', (e) => {
+    const t = e.target as HTMLElement;
+    if (e.key !== '/' || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable) return;
+    e.preventDefault();
+    const input = document.querySelector<HTMLInputElement>('.search-input');
+    if (input) input.focus(); else location.href = '/search/';
+  });
 </script>

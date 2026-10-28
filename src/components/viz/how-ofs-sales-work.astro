@@ -1,0 +1,163 @@
+---
+// Compliance gates pipeline: four pre-bid gates, then two-envelope evaluation. Country specifics come only from the page text.
+const W = 900, H = 300, NW = 180, NH = 62;
+const NS = 'Not stated on this page';
+
+const steps = [
+  { id: 'reg', lane: 0, x: 30, name: 'Registration / PQ', what: 'Vendor registration and prequalification on the NOC portal.' },
+  { id: 'lc', lane: 0, x: 250, name: 'Local-content score', what: 'A certified local-content score, scored in the commercial envelope.' },
+  { id: 'cyber', lane: 0, x: 470, name: 'Cyber certification', what: 'Cybersecurity certification as a hard gate.' },
+  { id: 'agent', lane: 0, x: 690, name: 'Local entity / agent', what: 'A local entity or agent to bid and perform.' },
+  { id: 'tech', lane: 1, x: 140, name: 'Technical envelope', what: 'Technical compliance is pass/fail.' },
+  { id: 'comm', lane: 1, x: 360, name: 'Commercial envelope', what: 'Commercial evaluation with local-content weighting.' },
+  { id: 'price', lane: 1, x: 580, name: 'Lowest price wins', what: 'Technical differentiation only earns the right to compete on price.' }
+];
+
+// short = node subtitle (≈34 chars); full = readout text. unk = the page is silent or the source is weak.
+const countries = [
+  { id: 'kw', label: 'Kuwait / KOC', anchor: 'kuwait--koc', d: {
+    reg: { short: 'CAPT above KD 75k · pre-approved list', full: 'Purchases above KD 75,000 (~$250k) go through CAPT, which invites prequalification and pre-tender meetings. Oil-sector suppliers must be approved by an internal committee and placed on a pre-approved list. KPC subsidiaries (KOC, KNPC, KOTC) run separate processes from CAPT and must be monitored directly. Gap: no primary KOC document on approved-vendor criteria was retrievable.' },
+    lc: { short: '≥30% local materials · 15% / 10% pref.', full: 'Foreign bidders must buy ≥30% of materials locally where available (Article 87). Domestic/GCC items get a 15% preference; Kuwaiti businesses a 10% price preference.' },
+    cyber: { short: NS, full: 'The page gives no Kuwait-specific cybersecurity certification requirement.', unk: true },
+    agent: { short: 'No agent required (Law 1/2024)', full: 'Law 1/2024 lets foreign companies open a branch and bid and perform tenders without a local agent or Kuwaiti commercial registration. A draft decree-law approved by Cabinet on 9 Sept 2026 would prohibit local/commission agents in government contracting — not in force pending Gazette publication.' },
+    tech: { short: 'Technical compliance first', full: 'Tenders are usually awarded to the lowest price once technical compliance is established.' },
+    comm: { short: 'Local preferences applied', full: 'Price preferences: 15% for domestic/GCC items, 10% for Kuwaiti businesses. Many companies add 10–15% to costs for bond and project risk.' },
+    price: { short: 'Lowest price · 5–10% bond', full: 'Lowest technically compliant price wins. Performance bond is 5–10% of contract value. Bidders can file grievances.' }
+  } },
+  { id: 'ae', label: 'UAE / ADNOC', anchor: 'uae--adnoc', d: {
+    reg: { short: 'SAP Ariba + SDM · PQ questionnaire', full: 'Registration via SAP Ariba + SDM in categories Vendor, Manufacturer, Contractor, Associate, Agent. The prequalification questionnaire covers capability, manpower, financial, quality and HSE.' },
+    lc: { short: 'ICV certificate · valid 14 months', full: 'ICV certificate valid 14 months, issued in 3–15 business days; no certificate means a zero ICV score. Service-provider scoring covers UAE third-party spend, UAE investment, Emiratisation and expat contribution, plus a bonus up to 5%. ICV 3.0 is current; 2026 adds "Local+" and "ICV+" credit for local manufacturers.' },
+    cyber: { short: NS, full: 'The page gives no ADNOC-specific cybersecurity certification requirement.', unk: true },
+    agent: { short: 'Abu Dhabi agent for overseas firms', full: 'Overseas manufacturers/associates need an Abu Dhabi agent (Exclusive or Representation agency). Agent bids average the agent\'s and principal\'s ICV.' },
+    tech: { short: NS, full: 'The page does not describe ADNOC\'s technical envelope separately from prequalification.', unk: true },
+    comm: { short: 'ICV = 40% of commercial score', full: 'ICV is 40% of the commercial evaluation. Gross negligence in ICV submissions can trigger a tender ban.' },
+    price: { short: NS, full: 'The page does not state how ADNOC ranks price after ICV weighting.', unk: true }
+  } },
+  { id: 'sa', label: 'Saudi / Aramco', anchor: 'saudi-arabia--aramco', d: {
+    reg: { short: 'Ariba + IKTVA self-assessment ⚠', full: 'Unverified (consultancy summary): Saudi legal entity mandatory; Nitaqat Green/Platinum; SAP Ariba + IKTVA self-assessment; 8–16 weeks with an entity, 12–22 weeks from zero.', unk: true },
+    lc: { short: 'IKTVA ratio · audited baseline', full: 'IKTVA ratio = localised goods/services + Saudi salaries + Saudi training + supplier development + R&D, over revenue, plus an export factor. Baseline certified by an approved audit firm; 5-year IKTVA plan. Aramco targets retaining 75% of procurement spend in-Kingdom.' },
+    cyber: { short: 'CCC / CCC+ (SACS-002) · 2 years', full: 'Cybersecurity Compliance Certificate under SACS-002: CCC (self-assessment, remote) for general vendors and customised software; CCC+ (on-site) for network connectivity and critical data. Both valid two years. Assessment takes 3–6 months (consultancy source).' },
+    agent: { short: 'Saudi entity mandatory ⚠', full: 'Unverified (consultancy summary): a Saudi legal entity is mandatory for registration.', unk: true },
+    tech: { short: NS, full: 'The page does not describe Aramco\'s technical envelope.', unk: true },
+    comm: { short: 'IKTVA weight not published', full: 'Gap: the IKTVA weight in bid evaluation is not published.', unk: true },
+    price: { short: NS, full: 'The page does not state Aramco\'s price-ranking rule.', unk: true }
+  } },
+  { id: 'qo', label: 'Qatar / Oman', anchor: 'qatar--oman', d: {
+    reg: { short: 'Oman: JSRS · Qatar: not stated', full: 'Oman JSRS exists. The page gives no QatarEnergy registration detail.' },
+    lc: { short: 'Tawteen ICV (QA) · ICV (OM)', full: 'QatarEnergy Tawteen ICV has applied to energy tenders since July 2020, with 12 certifier firms. Oman ICV exists.' },
+    cyber: { short: NS, full: 'The page gives no Qatar or Oman cybersecurity certification requirement.', unk: true },
+    agent: { short: NS, full: 'The page gives no Qatar or Oman entity/agent rule.', unk: true },
+    tech: { short: NS, full: 'The page does not describe the technical envelope for QatarEnergy or PDO.', unk: true },
+    comm: { short: 'Weights not found', full: 'Gap: QatarEnergy evaluation weight not found; PDO weights not retrieved.', unk: true },
+    price: { short: NS, full: 'The page does not state a price-ranking rule for QatarEnergy or PDO.', unk: true }
+  } }
+];
+const first = countries[0];
+const laneY = [0, 150];
+const nodeY = (lane: number) => laneY[lane] + 52;
+const at = Object.fromEntries(steps.map((s) => [s.id, s]));
+const arrows = [
+  ['reg', 'lc'], ['lc', 'cyber'], ['cyber', 'agent'], ['tech', 'comm'], ['comm', 'price']
+].map(([a, b]) => { const s = at[a], y = nodeY(s.lane) + NH / 2; return { d: `M${s.x + NW},${y} H${at[b].x - 6}`, a, b }; });
+const ag = at.agent, te = at.tech;
+arrows.push({ d: `M${ag.x + NW / 2},${nodeY(0) + NH} C${ag.x + NW / 2},${laneY[1] + 10} ${te.x + NW / 2},${laneY[1] + 2} ${te.x + NW / 2},${nodeY(1) - 6}`, a: 'agent', b: 'tech' });
+const data = JSON.stringify({ steps, countries });
+---
+<section class="viz" aria-labelledby="viz-gates-h" data-viz="gates">
+  <div class="viz-head">
+    <h2 id="viz-gates-h">Four gates, then two envelopes</h2>
+    <p class="viz-hint">Pick a country, then tap a gate. Dashed boxes: the page is silent or the source is unverified. <span class="only-small">Scroll sideways on small screens.</span></p>
+  </div>
+  <div class="viz-controls">
+    <div class="seg" role="group" aria-label="Country">
+      {countries.map((c, i) => <button type="button" data-country={c.id} aria-pressed={i === 0 ? 'true' : 'false'}>{c.label}</button>)}
+    </div>
+  </div>
+  <div class="viz-stage viz-scroll">
+    <svg viewBox={`0 0 ${W} ${H}`} style="min-width:720px" role="group" aria-label="Gulf NOC compliance gates and evaluation">
+      <defs>
+        <marker id="gate-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" class="gate-head" /></marker>
+      </defs>
+      <rect class="v-lane" x="0" y={laneY[0]} width={W} height="140" />
+      <rect class="v-lane" x="0" y={laneY[1]} width={W} height="150" />
+      <text class="v-mono gate-lane" x="30" y={laneY[0] + 28}>Before the bid — four gates</text>
+      <text class="v-mono gate-lane" x="30" y={laneY[1] + 28}>Two-envelope evaluation</text>
+      {arrows.map((a) => <path class="v-edge" d={a.d} data-a={a.a} data-b={a.b} marker-end="url(#gate-arrow)" />)}
+      {steps.map((s, i) => {
+        const c = first.d[s.id as keyof typeof first.d] as { short: string; unk?: boolean };
+        return (
+          <g class={`v-hit${c.unk ? ' unk' : ''}`} data-node={s.id} tabindex="0" role="button" aria-label={`${s.name}: ${c.short}`}>
+            <rect class="v-node" x={s.x} y={nodeY(s.lane)} width={NW} height={NH} />
+            <text class="v-mono" x={s.x + 12} y={nodeY(s.lane) + 17}>{String(i + 1).padStart(2, '0')}</text>
+            <text class="v-label" x={s.x + 12} y={nodeY(s.lane) + 35}>{s.name}</text>
+            <text class="v-sub" x={s.x + 12} y={nodeY(s.lane) + 51} data-short>{c.short}</text>
+          </g>
+        );
+      })}
+    </svg>
+  </div>
+  <div class="viz-legend">
+    <span><i></i>Gate with page-sourced detail</span>
+    <span><svg width="12" height="12" aria-hidden="true"><rect x="1" y="1" width="10" height="10" class="v-node gate-unk-swatch" /></svg> Silent or unverified</span>
+    <span>The four-gate stack itself is the page's <span class="tag">inference</span> from cited sources</span>
+  </div>
+  <div class="viz-readout" aria-live="polite" data-readout>
+    <p><strong>Four gates precede any product conversation.</strong> Then the technical envelope is pass/fail, the commercial envelope weights local content, and lowest price wins. Tap a gate for the selected country's rules.</p>
+  </div>
+  <script type="application/json" data-gates-data set:html={data} />
+</section>
+
+<style>
+  .gate-head { fill: var(--edge-doc); }
+  .gate-lane { font-weight: 600; fill: var(--ink); }
+  .v-hit.unk .v-node, .gate-unk-swatch { stroke-dasharray: 4 3; stroke: var(--ink-3); }
+  .v-hit.unk .v-sub { fill: var(--ink-3); }
+  .only-small { display: none; }
+  @media (max-width: 799px) { .only-small { display: inline; } }
+  .viz-controls .seg button { min-height: 44px; }
+</style>
+
+<script>
+  type Cell = { short: string; full: string; unk?: boolean };
+  type C = { id: string; label: string; anchor: string; d: Record<string, Cell> };
+  type S = { id: string; name: string; what: string };
+  for (const root of document.querySelectorAll<HTMLElement>('[data-viz="gates"]')) {
+    const { steps, countries } = JSON.parse(root.querySelector('[data-gates-data]')!.textContent!) as { steps: S[]; countries: C[] };
+    const nodes = [...root.querySelectorAll<SVGGElement>('[data-node]')];
+    const lines = [...root.querySelectorAll<SVGPathElement>('.v-edge[data-a]')];
+    const readout = root.querySelector<HTMLElement>('[data-readout]')!;
+    const initial = readout.innerHTML;
+    let country = countries[0];
+    let selected: string | null = null;
+
+    const show = () => {
+      nodes.forEach((n) => {
+        const cell = country.d[n.dataset.node!];
+        n.classList.toggle('unk', !!cell.unk);
+        n.querySelector('[data-short]')!.textContent = cell.short;
+        n.setAttribute('aria-label', `${steps.find((s) => s.id === n.dataset.node)!.name}: ${cell.short}`);
+        n.classList.toggle('is-hot', n.dataset.node === selected);
+      });
+      lines.forEach((l) => l.classList.toggle('is-hot', !!selected && (l.dataset.a === selected || l.dataset.b === selected)));
+      if (!selected) { readout.innerHTML = initial; return; }
+      const s = steps.find((x) => x.id === selected)!, cell = country.d[selected];
+      readout.innerHTML = `<h3>${s.name} · ${country.label}</h3>
+        <p><span class="eyebrow">What the gate is</span><br>${s.what}</p>
+        <p><span class="eyebrow">${country.label}</span><br>${cell.full}${cell.unk ? ' <span class="tag danger">gap / unverified</span>' : ''}</p>
+        <p><a href="#${country.anchor}">Read the ${country.label} section ↓</a></p>`;
+    };
+
+    root.querySelectorAll<HTMLButtonElement>('[data-country]').forEach((b) => b.addEventListener('click', () => {
+      country = countries.find((c) => c.id === b.dataset.country)!;
+      root.querySelectorAll('[data-country]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      show();
+    }));
+    nodes.forEach((n) => {
+      const pick = () => { selected = selected === n.dataset.node ? null : n.dataset.node!; show(); };
+      n.addEventListener('click', pick);
+      n.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+      n.addEventListener('mouseenter', () => { if (!selected) { selected = n.dataset.node!; show(); selected = null; } });
+    });
+    root.querySelector('svg')!.addEventListener('mouseleave', () => show());
+  }
+</script>

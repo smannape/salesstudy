@@ -11,27 +11,30 @@ const { title, description = 'Daily selling reference cards and weekly oil & gas
 const fullTitle = title === 'Sales Hub' ? title : `${title} · Sales Hub`;
 ---
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#1c2127" />
-    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#F4F4F2" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700&family=Inter:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/icon-192.png" type="image/png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon-180.png" />
     <meta name="apple-mobile-web-app-title" content="Hub" />
     <link rel="alternate" type="application/rss+xml" title="Sales Hub — O&G digital news" href="/rss.xml" />
     <script is:inline>
-      // Dark is the default; a stored "light" choice overrides it. Storage can throw in private mode.
+      // Light (paper) is the default; a stored "dark" choice overrides it. Storage can throw in private mode.
       (function () {
-        var t = 'dark';
-        try { t = localStorage.getItem('theme') || 'dark'; } catch (e) {}
+        var t = 'light';
+        try { t = localStorage.getItem('theme') === 'dark' ? 'dark' : 'light'; } catch (e) {}
         document.documentElement.setAttribute('data-theme', t);
         var m = document.querySelector('meta[name="theme-color"]');
-        if (m) m.setAttribute('content', t === 'light' ? '#f6f7f9' : '#1c2127');
+        if (m) m.setAttribute('content', t === 'dark' ? '#000000' : '#F4F4F2');
       })();
     </script>
   </head>
@@ -41,10 +44,10 @@ const fullTitle = title === 'Sales Hub' ? title : `${title} · Sales Hub`;
       <main class="page" id="main">
         <slot />
       </main>
-      <footer class="footer">
-        <span>Sales Hub · reference notes dated 2026-10-28 · benchmarks tagged <span class="tag warning">indicative</span> are vendor/aggregator figures, not O&G-specific</span>
+      <footer class="footer"><div class="footer-in">
+        <span>Sales Hub · reference notes as of 28 Oct 2026 · <span class="tag warning">indicative</span> = vendor/aggregator figures, not O&amp;G-specific</span>
         <span><a href="/rss.xml">RSS</a> · <a href="/sources/">Sources</a> · <a href="/styleguide/">Styleguide</a></span>
-      </footer>
+      </div></footer>
     </div>
     <script>
       import '../scripts/enhance.ts';

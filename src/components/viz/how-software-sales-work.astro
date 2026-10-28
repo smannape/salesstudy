@@ -1,0 +1,165 @@
+---
+// Methodology stack: four layers, eight frameworks, the relationships the page states (solid) or infers (dashed).
+const W = 900, LABEL_W = 210, TOP = 16, BAND_H = 96, GAP = 8, NODE_W = 196, NODE_H = 48;
+
+const layers = [
+  { id: 'qual', name: 'Qualification', sub: 'Deal management', job: 'Scorecard: is this deal real and winnable?' },
+  { id: 'disc', name: 'Discovery', sub: 'Find the pain', job: 'Find and quantify pain' },
+  { id: 'value', name: 'Value messaging', sub: 'Frame the narrative', job: 'Frame the value narrative' },
+  { id: 'late', name: 'Late-stage indecision', sub: 'Beat "no decision"', job: 'Beat "no decision"' }
+];
+
+const frameworks = [
+  { id: 'meddpicc', layer: 'qual', name: 'MEDDIC / MEDDPICC', sub: '8-element scorecard', when: 'Scoring and forecasting every deal', card: 'meddpicc' },
+  { id: 'spin', layer: 'disc', name: 'SPIN', sub: 'Situation → Need-Payoff', when: "Early discovery, still finding what's broken", card: 'spin' },
+  { id: 'sandler', layer: 'disc', name: 'Sandler Pain Funnel', sub: 'Business + personal pain', when: 'Uncovering business and personal pain', card: 'sandler' },
+  { id: 'gap', layer: 'disc', name: 'Gap Selling', sub: 'Current vs future state', when: 'Quantifying current vs future state', card: 'gap-selling' },
+  { id: 'cotm', layer: 'value', name: 'Command of the Message', sub: 'Required capabilities', when: 'Writing the value narrative and champion pitch', card: 'command-of-the-message' },
+  { id: 'valueselling', layer: 'value', name: 'ValueSelling', sub: 'Should / worth / can / when', when: 'Qualifying "should / worth / can / when"', card: 'valueselling' },
+  { id: 'challenger', layer: 'value', name: 'Challenger', sub: 'Teach, tailor, take control', when: 'Long cycle, crowded market, indecisive committee (paired with MEDDIC + SPIN)', card: 'challenger' },
+  { id: 'jolt', layer: 'late', name: 'JOLT', sub: 'Judge · Offer · Limit · Take risk off', when: 'Late-stage stalls, cold feet, "no decision"', card: 'jolt' }
+];
+
+// kind: doc = stated on the page with a source; inf = the page's own inference ("Recommended stack").
+const edges = [
+  { from: 'spin', to: 'meddpicc', kind: 'doc', note: 'SPIN maps onto Pain, Metrics and Decision Criteria (MEDDICC.com mapping)' },
+  { from: 'challenger', to: 'meddpicc', kind: 'doc', note: 'Challenger is paired with MEDDIC + SPIN' },
+  { from: 'challenger', to: 'spin', kind: 'doc', note: 'Challenger is paired with MEDDIC + SPIN' },
+  { from: 'sandler', to: 'meddpicc', kind: 'inf', note: 'Sandler questions fill Pain and Metrics (recommended stack)' },
+  { from: 'gap', to: 'meddpicc', kind: 'inf', note: 'Gap questions fill Pain and Metrics (recommended stack)' },
+  { from: 'cotm', to: 'meddpicc', kind: 'inf', note: 'Value narrative feeds the champion and Decision Criteria (recommended stack)' }
+];
+
+const bandY = (i: number) => TOP + i * (BAND_H + GAP);
+const H = bandY(layers.length) + 8;
+const pos: Record<string, { x: number; y: number }> = {};
+layers.forEach((l, li) => {
+  const members = frameworks.filter((f) => f.layer === l.id);
+  const span = W - LABEL_W - 20;
+  members.forEach((f, i) => {
+    const cx = LABEL_W + span * ((i + 0.5) / members.length);
+    pos[f.id] = { x: cx - NODE_W / 2, y: bandY(li) + (BAND_H - NODE_H) / 2 };
+  });
+});
+const path = (a: string, b: string) => {
+  const s = pos[a], t = pos[b];
+  const up = t.y < s.y;
+  const x1 = s.x + NODE_W / 2 + (s.x < t.x ? 30 : s.x > t.x ? -30 : 0), y1 = up ? s.y : s.y + NODE_H;
+  const x2 = t.x + NODE_W / 2 + (s.x < t.x ? -30 : s.x > t.x ? 30 : 0), y2 = up ? t.y + NODE_H + 6 : t.y - 6;
+  const my = (y1 + y2) / 2;
+  return `M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}`;
+};
+const data = JSON.stringify({ layers, frameworks, edges });
+---
+<section class="viz" aria-labelledby="viz-stack-h" data-viz="stack">
+  <div class="viz-head">
+    <h2 id="viz-stack-h">The layer stack</h2>
+    <p class="viz-hint">Hover or tap a framework; click a layer name to dim it. <span class="only-small">Scroll sideways on small screens.</span></p>
+  </div>
+  <div class="viz-stage viz-scroll">
+    <svg viewBox={`0 0 ${W} ${H}`} style="min-width:760px" role="group" aria-label="Sales methodology layer stack">
+      <defs>
+        <marker id="stk-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8 z" class="stk-head" /></marker>
+      </defs>
+      {layers.map((l, i) => (
+        <g class="stk-layer" data-layer={l.id}>
+          <rect class="v-lane" x="0" y={bandY(i)} width={W} height={BAND_H} />
+          <g class="stk-toggle" data-toggle={l.id} tabindex="0" role="button" aria-pressed="false" aria-label={`Dim or undim layer ${l.name}`}>
+            <rect x="0" y={bandY(i)} width={LABEL_W - 10} height={BAND_H} fill="transparent" />
+            <text class="v-mono stk-lname" x="18" y={bandY(i) + 40}>{l.name}</text>
+            <text class="v-sub" x="18" y={bandY(i) + 58}>{l.sub} — click to dim</text>
+          </g>
+        </g>
+      ))}
+      <g class="stk-edges">
+        {edges.map((e) => (
+          <path class={`v-edge${e.kind === 'inf' ? ' inf' : ''}`} d={path(e.from, e.to)} data-from={e.from} data-to={e.to} marker-end="url(#stk-arrow)" />
+        ))}
+      </g>
+      {frameworks.map((f) => (
+        <g class="v-hit" data-node={f.id} data-layer={f.layer} tabindex="0" role="button" aria-label={`${f.name}: ${f.when}`}>
+          <rect class="v-node" x={pos[f.id].x} y={pos[f.id].y} width={NODE_W} height={NODE_H} />
+          <text class="v-label" x={pos[f.id].x + NODE_W / 2} y={pos[f.id].y + 21} text-anchor="middle">{f.name}</text>
+          <text class="v-sub" x={pos[f.id].x + NODE_W / 2} y={pos[f.id].y + 36} text-anchor="middle">{f.sub}</text>
+        </g>
+      ))}
+    </svg>
+  </div>
+  <div class="viz-legend">
+    <span><svg width="34" height="10" aria-hidden="true"><path class="v-edge" d="M1,5 H33" /></svg> Stated on the page, with source</span>
+    <span><svg width="34" height="10" aria-hidden="true"><path class="v-edge inf" d="M1,5 H33" /></svg> Page's own inference (recommended stack)</span>
+    <span>Arrow points to the scorecard element it feeds</span>
+  </div>
+  <div class="viz-readout" aria-live="polite" data-readout>
+    <p><strong>MEDDPICC is the scorecard;</strong> discovery and value frameworks feed it, and JOLT handles the late-stage stall. Hover or tap a framework to see its job and when to use it.</p>
+  </div>
+  <script type="application/json" data-stack-data set:html={data} />
+</section>
+
+<style>
+  .stk-head { fill: var(--edge-doc); }
+  .stk-toggle { cursor: pointer; }
+  .stk-toggle:hover .stk-lname, .stk-toggle:focus-visible .stk-lname { fill: var(--accent); }
+  .stk-layer.is-off .v-lane { opacity: .35; }
+  .v-hit.is-off { opacity: .18; }
+  .stk-lname { font-weight: 600; fill: var(--ink); }
+  .only-small { display: none; }
+  @media (max-width: 799px) { .only-small { display: inline; } }
+</style>
+
+<script>
+  type F = { id: string; layer: string; name: string; when: string; card: string };
+  type L = { id: string; name: string; job: string };
+  type E = { from: string; to: string; kind: string; note: string };
+  for (const root of document.querySelectorAll<HTMLElement>('[data-viz="stack"]')) {
+    const { layers, frameworks, edges } = JSON.parse(root.querySelector('[data-stack-data]')!.textContent!) as { layers: L[]; frameworks: F[]; edges: E[] };
+    const nodes = [...root.querySelectorAll<SVGGElement>('[data-node]')];
+    const lines = [...root.querySelectorAll<SVGPathElement>('.stk-edges path')];
+    const readout = root.querySelector<HTMLElement>('[data-readout]')!;
+    const initial = readout.innerHTML;
+    const byId = (id: string) => frameworks.find((f) => f.id === id)!;
+    let pinned: string | null = null;
+
+    const render = (id: string | null) => {
+      if (!id) {
+        nodes.forEach((n) => n.classList.remove('is-hot', 'is-dim'));
+        lines.forEach((l) => l.classList.remove('is-hot', 'is-dim'));
+        readout.innerHTML = initial;
+        return;
+      }
+      const near = new Set([id]);
+      const mine = edges.filter((e) => e.from === id || e.to === id);
+      mine.forEach((e) => { near.add(e.from); near.add(e.to); });
+      nodes.forEach((n) => { const k = n.dataset.node!; n.classList.toggle('is-hot', k === id); n.classList.toggle('is-dim', !near.has(k)); });
+      lines.forEach((l) => { const on = l.dataset.from === id || l.dataset.to === id; l.classList.toggle('is-hot', on); l.classList.toggle('is-dim', !on); });
+      const f = byId(id), layer = layers.find((l) => l.id === f.layer)!;
+      const rel = mine.map((e) => `<li>${e.note}${e.kind === 'inf' ? ' <span class="tag">inference</span>' : ''}</li>`).join('');
+      readout.innerHTML = `<h3>${f.name}</h3>
+        <p><span class="eyebrow">${layer.name} · job</span><br>${layer.job}</p>
+        <p><span class="eyebrow">When to use</span><br>${f.when}</p>
+        ${rel ? `<ul style="margin:0 0 6px;padding-left:18px">${rel}</ul>` : ''}
+        <p><a href="#${f.card}">Open the ${f.name.split(' / ').pop()} card ↓</a></p>`;
+    };
+
+    nodes.forEach((n) => {
+      const id = n.dataset.node!;
+      n.addEventListener('mouseenter', () => render(id));
+      n.addEventListener('focus', () => render(id));
+      n.addEventListener('click', () => { pinned = pinned === id ? null : id; render(pinned ?? id); });
+      n.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); n.dispatchEvent(new MouseEvent('click')); } });
+    });
+    root.querySelector('svg')!.addEventListener('mouseleave', () => render(pinned));
+
+    root.querySelectorAll<SVGGElement>('[data-toggle]').forEach((t) => {
+      const toggle = () => {
+        const id = t.dataset.toggle!;
+        const off = t.getAttribute('aria-pressed') !== 'true';
+        t.setAttribute('aria-pressed', String(off));
+        root.querySelector(`.stk-layer[data-layer="${id}"]`)!.classList.toggle('is-off', off);
+        nodes.filter((n) => n.dataset.layer === id).forEach((n) => n.classList.toggle('is-off', off));
+      };
+      t.addEventListener('click', toggle);
+      t.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+    });
+  }
+</script>

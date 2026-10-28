@@ -1,0 +1,198 @@
+---
+// (a) MEDDPICC radar driven by the scorer further down the page; (b) percentage benchmarks from this page (all indicative).
+const axes = [
+  { k: 'M', n: 'Metrics' }, { k: 'E', n: 'Economic buyer' }, { k: 'Dc', n: 'Decision criteria' }, { k: 'Dp', n: 'Decision process' },
+  { k: 'P', n: 'Paper process' }, { k: 'I', n: 'Identify pain' }, { k: 'Ch', n: 'Champion' }, { k: 'Co', n: 'Competition' }
+];
+const W = 500, H = 350, cx = W / 2, cy = H / 2, R = 118;
+const at = (i: number, v: number) => {
+  const a = (i / axes.length) * Math.PI * 2 - Math.PI / 2;
+  return [cx + (v / 4) * R * Math.cos(a), cy + (v / 4) * R * Math.sin(a)];
+};
+const ring = (v: number) => axes.map((_, i) => at(i, v).map((n) => n.toFixed(1)).join(',')).join(' ');
+const labels = axes.map((a, i) => {
+  const [x, y] = at(i, 4.62);
+  const c = Math.cos((i / axes.length) * Math.PI * 2 - Math.PI / 2);
+  return { ...a, x, y, anchor: Math.abs(c) < 0.2 ? 'middle' : c > 0 ? 'start' : 'end', i };
+});
+
+const S = { hb: 'https://www.hyperbound.ai/blog/b2b-sales-performance-benchmark-2025', rw: 'https://resources.rework.com/de/guides/sales-engineer-playbooks/sales-engineer-metrics',
+  gs: 'https://www.growthspreeofficial.com/blogs/b2b-saas-sales-forecast-accuracy-benchmarks-2026-commit-best-case-pipeline-by-stage', gong: 'https://www.saastr.com/gong-100k-deals-take-about-days-to-close' };
+const bench = [
+  { n: 'Win rate', f: 'Won / (won + lost)', band: [20, 21], marks: [{ v: 25, l: 'Gong ent.' }, { v: 30, l: 'Top 30%+' }],
+    note: '~20–21% B2B average (Ebsta × Pavilion, 4.2M opps); top performers 30%+; Gong enterprise ~25%.', src: [['Hyperbound', S.hb], ['SaaStr/Gong', S.gong]] },
+  { n: 'Technical win rate', f: 'Won / (won + lost) for deals with medium/intensive SE involvement', band: [25, 40], marks: [{ v: 45, l: 'Target ≥45' }],
+    note: 'Enterprise 25–40%; scorecard target ≥45%.', src: [['Rework SE metrics', S.rw]] },
+  { n: 'Demo conversion', f: 'First demos advancing within 14 days / total first demos', band: [50, 65], marks: [{ v: 40, l: '<40 generic' }],
+    note: '50–65% healthy; <40% means demos are too generic.', src: [['Rework SE metrics', S.rw]] },
+  { n: 'POC success rate', f: 'POCs meeting pre-agreed criteria AND closed-won / all completed POCs', band: [60, 75], marks: [{ v: 40, l: '<40 broken' }, { v: 75, l: '>75 too picky?' }],
+    note: '<40% broken; 60%+ disciplined; >75% possibly rejecting too many.', src: [['Rework SE metrics', S.rw]] },
+  { n: 'Commit forecast accuracy', f: 'Closed-won / commit', band: [95, 100], marks: [{ v: 80, l: '<80 over-commit' }, { v: 85, l: 'Median 85' }],
+    note: 'Commit median 85%, top quartile 95%+; <80% = over-committing. Vendor-authored, unsourced.', src: [['GrowthSpree', S.gs]] },
+  { n: 'Quota attainment', f: 'Reps at quota / reps', band: [28, 28], marks: [{ v: 44, l: '2022: 44' }],
+    note: '28% in 2023 (from 44% in 2022); page figures conflict — cite as "roughly two-thirds or more missed".', src: [['Hyperbound', S.hb]] }
+];
+---
+<section class="viz mtx" aria-labelledby="mtx-title" data-mtx data-bench={JSON.stringify(bench)}>
+  <div class="viz-head">
+    <h2 id="mtx-title">Deal shape and the benchmarks around it</h2>
+    <p class="viz-hint">The radar follows the <a href="#meddpicc-scoring-rubric">MEDDPICC scorer</a> below; tap a benchmark for its formula.</p>
+  </div>
+  <div class="viz-stage mtx-grid">
+    <figure class="mtx-radar">
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-labelledby="mtx-radar-desc">
+        <desc id="mtx-radar-desc" data-desc>MEDDPICC radar, all elements at 1.</desc>
+        {[1, 2, 4].map((v) => <polygon points={ring(v)} class="mtx-ring" />)}
+        <polygon points={ring(3)} class="mtx-gate" />
+        {axes.map((_, i) => { const [x, y] = at(i, 4); return <line x1={cx} y1={cy} x2={x} y2={y} class="v-grid" />; })}
+        <text x={cx + 4} y={cy - (3 / 4) * R - 4} class="mtx-gatelabel">3 · gate line</text>
+        <polygon points={ring(1)} class="mtx-shape" data-shape />
+        {axes.map((_, i) => { const [x, y] = at(i, 1); return <circle cx={x} cy={y} r="3.5" class="mtx-pt" data-pt={i} />; })}
+        {labels.map((l) => (
+          <g class="v-hit mtx-axis" tabindex="0" role="button" aria-label={`${l.n}: jump to its score`} data-k={l.k}>
+            <rect x={l.anchor === 'start' ? l.x - 4 : l.anchor === 'end' ? l.x - 104 : l.x - 54} y={l.y - 16} width="108" height="30" fill="transparent" />
+            <text x={l.x} y={l.y} text-anchor={l.anchor} class="v-label mtx-alabel">{l.n}</text>
+            <text x={l.x} y={l.y + 12} text-anchor={l.anchor} class="v-mono" data-val={l.k}>1 / 4</text>
+          </g>
+        ))}
+      </svg>
+      <figcaption>
+        <div class="mtx-gates" data-gates></div>
+        <a class="btn small" href="#meddpicc-scoring-rubric">Jump to scorer ↓</a>
+      </figcaption>
+    </figure>
+    <div class="mtx-bench">
+      <div class="mtx-bhead"><span>Benchmark · 0–100%</span><span class="tag warning">indicative</span></div>
+      <ol>
+        {bench.map((b, i) => (
+          <li>
+            <button type="button" class="mtx-row" data-b={i} aria-label={`${b.n}: show formula and source`}>
+              <span class="mtx-bname">{b.n}</span>
+              <span class="mtx-track" aria-hidden="true">
+                <span class="mtx-band" style={`left:${b.band[0]}%;width:${Math.max(1.2, b.band[1] - b.band[0])}%`}></span>
+                {b.marks.map((m) => <span class="mtx-mark" style={`left:${m.v}%`}><em>{m.l}</em></span>)}
+              </span>
+              <span class="mtx-bval num">{b.band[0] === b.band[1] ? `${b.band[0]}%` : `${b.band[0]}–${b.band[1]}%`}</span>
+            </button>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </div>
+  <div class="viz-legend">
+    <span><i style="background:var(--accent-soft);outline:1px solid var(--accent)"></i>Your deal (scorer)</span>
+    <span><i style="background:none;outline:1px dashed var(--accent)"></i>Score 3: needed on gate elements</span>
+    <span><i style="background:var(--ink)"></i>Benchmark band</span>
+    <span><i style="width:2px"></i>Reference marker</span>
+  </div>
+  <div class="viz-readout" aria-live="polite" data-readout>
+    <p>All benchmarks are generic SaaS/B2B figures, none oil-and-gas-specific. Tap a bar for its formula and source; score the deal below and the radar redraws.</p>
+  </div>
+</section>
+
+<style>
+  .mtx-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); }
+  .mtx-radar { margin: 0; padding: 12px 12px 16px; border-right: 1px solid var(--rule); display: flex; flex-direction: column; align-items: center; }
+  .mtx-radar svg { max-width: 520px; }
+  .mtx-radar figcaption { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center; }
+  .mtx-gates { display: flex; flex-wrap: wrap; gap: 6px; }
+  .mtx-ring { fill: none; stroke: var(--rule); }
+  .mtx-gate { fill: none; stroke: var(--accent); stroke-dasharray: 4 4; stroke-width: 1.2; }
+  .mtx-gatelabel { fill: var(--accent); font: 500 9.5px var(--mono); letter-spacing: .05em; text-transform: uppercase; }
+  .mtx-shape { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; transition: all .35s var(--ease); }
+  .mtx-pt { fill: var(--accent); }
+  .mtx-pt.low { fill: var(--red); }
+  .mtx-alabel { font-size: 13px; }
+  .mtx-axis:hover .mtx-alabel, .mtx-axis:focus-visible .mtx-alabel { fill: var(--accent); text-decoration: underline; }
+  .mtx-axis:focus-visible { outline: none; }
+  .mtx-bench { padding: 12px 16px 8px; min-width: 0; }
+  .mtx-bhead { display: flex; justify-content: space-between; align-items: center; font: 500 10.5px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); padding-bottom: 8px; border-bottom: 1px solid var(--rule); }
+  .mtx-bench ol { list-style: none; margin: 0; padding: 0; }
+  .mtx-bench li { margin: 0; border-bottom: 1px solid var(--rule); }
+  .mtx-row { display: grid; grid-template-columns: 1fr 64px; grid-template-areas: "name val" "track track"; gap: 6px 10px; width: 100%; padding: 10px 0 22px; min-height: 44px; background: none; border: 0; text-align: left; cursor: pointer; color: var(--ink); }
+  .mtx-row:hover .mtx-bname, .mtx-row.is-hot .mtx-bname { color: var(--accent); }
+  .mtx-bname { grid-area: name; font: 600 14px/1.25 var(--display); }
+  .mtx-bval { grid-area: val; text-align: right; font: 600 13px var(--mono); }
+  .mtx-track { grid-area: track; position: relative; height: 10px; background: linear-gradient(90deg, var(--rule) 1px, transparent 1px) 0 0 / 10% 100%, var(--paper-3); }
+  .mtx-band { position: absolute; top: 0; bottom: 0; background: var(--ink); }
+  .mtx-row.is-hot .mtx-band, .mtx-row:hover .mtx-band { background: var(--accent); }
+  .mtx-mark { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: var(--ink-2); }
+  .mtx-mark em { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); font: normal 500 9.5px var(--mono); color: var(--ink-2); white-space: nowrap; }
+  @media (max-width: 859px) {
+    .mtx-grid { grid-template-columns: 1fr; }
+    .mtx-radar { border-right: 0; border-bottom: 1px solid var(--rule); }
+  }
+</style>
+
+<script>
+  const KEYS = ['M', 'E', 'Dc', 'Dp', 'P', 'I', 'Ch', 'Co'];
+  const NAMES: Record<string, string> = { M: 'Metrics', E: 'Economic buyer', Dc: 'Decision criteria', Dp: 'Decision process', P: 'Paper process', I: 'Identify pain', Ch: 'Champion', Co: 'Competition' };
+  type Detail = { scores: Record<string, number>; avg: number; qualify: boolean; validate: boolean; commit: boolean };
+
+  document.querySelectorAll<HTMLElement>('[data-mtx]').forEach((root) => {
+    const svg = root.querySelector('svg')!;
+    const [W, H] = svg.getAttribute('viewBox')!.split(' ').slice(2).map(Number);
+    const cx = W / 2, cy = H / 2, R = 118;
+    const at = (i: number, v: number) => {
+      const a = (i / KEYS.length) * Math.PI * 2 - Math.PI / 2;
+      return [cx + (v / 4) * R * Math.cos(a), cy + (v / 4) * R * Math.sin(a)];
+    };
+    const shape = root.querySelector('[data-shape]')!;
+    const pts = Array.from(root.querySelectorAll<SVGCircleElement>('[data-pt]'));
+    const gates = root.querySelector<HTMLElement>('[data-gates]')!;
+    const desc = root.querySelector('[data-desc]')!;
+
+    const draw = (d: Detail) => {
+      const xy = KEYS.map((k, i) => at(i, d.scores[k] ?? 1));
+      shape.setAttribute('points', xy.map((p) => p.map((n) => n.toFixed(1)).join(',')).join(' '));
+      pts.forEach((c, i) => { c.setAttribute('cx', xy[i][0].toFixed(1)); c.setAttribute('cy', xy[i][1].toFixed(1)); c.classList.toggle('low', (d.scores[KEYS[i]] ?? 1) < 3); });
+      KEYS.forEach((k) => { const t = root.querySelector(`[data-val="${k}"]`); if (t) t.textContent = `${d.scores[k] ?? 1} / 4`; });
+      const g = (n: string, ok: boolean) => `<span class="tag ${ok ? 'success' : 'danger'}">${n} ${ok ? '✓' : '✕'}</span>`;
+      const weakest = KEYS.reduce((a, k) => ((d.scores[k] ?? 1) < (d.scores[a] ?? 1) ? k : a), KEYS[0]);
+      gates.innerHTML = `<span class="tag default">avg ${d.avg.toFixed(2)}</span>${g('Qualify', d.qualify)}${g('Validate', d.validate)}${g('Commit', d.commit)}<span class="tag default">weakest: ${NAMES[weakest]}</span>`;
+      desc.textContent = `MEDDPICC radar: ${KEYS.map((k) => `${NAMES[k]} ${d.scores[k] ?? 1}`).join(', ')}.`;
+    };
+
+    // Same rules as the scorer in enhance.ts; used only until its first event arrives.
+    const fromSelects = (): Detail | null => {
+      const sels = Array.from(document.querySelectorAll<HTMLSelectElement>('[data-scorer] select[data-el]'));
+      if (!sels.length) return null;
+      const scores: Record<string, number> = {};
+      sels.forEach((s) => (scores[s.dataset.el!] = Number(s.value)));
+      const v = KEYS.map((k) => scores[k] ?? 1);
+      const avg = v.reduce((a, b) => a + b, 0) / v.length;
+      const ge3 = (ks: string[]) => ks.every((k) => scores[k] >= 3);
+      const qualify = ge3(['M', 'E', 'Dc', 'I']) && avg >= 2.5;
+      return { scores, avg, qualify, validate: qualify && ge3(['Dp', 'I']) && avg >= 3, commit: v.every((x) => x >= 3) && avg >= 3.5 };
+    };
+
+    document.addEventListener('meddpicc', (e) => draw((e as CustomEvent<Detail>).detail));
+    draw(fromSelects() ?? { scores: {}, avg: 1, qualify: false, validate: false, commit: false });
+    // The scorer may initialise after this script; catch its first render too.
+    requestAnimationFrame(() => { const d = fromSelects(); if (d) draw(d); });
+
+    root.querySelectorAll<SVGGElement>('.mtx-axis').forEach((g) => {
+      const go = () => {
+        const sel = document.querySelector<HTMLSelectElement>(`[data-scorer] select[data-el="${g.dataset.k}"]`);
+        if (!sel) { location.hash = 'meddpicc-scoring-rubric'; return; }
+        sel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        sel.focus({ preventScroll: true });
+      };
+      g.addEventListener('click', go);
+      g.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+    });
+
+    type B = { n: string; f: string; note: string; src: [string, string][] };
+    const bench: B[] = JSON.parse(root.dataset.bench!);
+    const readout = root.querySelector<HTMLElement>('[data-readout]')!;
+    const rows = Array.from(root.querySelectorAll<HTMLButtonElement>('.mtx-row'));
+    const show = (row: HTMLButtonElement) => {
+      const b = bench[Number(row.dataset.b)];
+      rows.forEach((r) => r.classList.toggle('is-hot', r === row));
+      readout.innerHTML = `<h3>${b.n} <span class="tag warning">indicative</span></h3>
+        <p><code>${b.f}</code></p><p>${b.note}</p>
+        <p class="small muted">Source: ${b.src.map(([t, u]) => `<a href="${u}" rel="noopener">${t}</a>`).join(' · ')}</p>`;
+    };
+    rows.forEach((r) => { r.addEventListener('click', () => show(r)); r.addEventListener('mouseenter', () => show(r)); r.addEventListener('focus', () => show(r)); });
+  });
+</script>

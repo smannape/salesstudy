@@ -27,9 +27,13 @@ function initChecklists() {
     if (!boxes.length) return;
     const saved = store.get<number[]>(key, []);
     const status = document.createElement('span');
+    const meter = document.createElement('span');
+    meter.className = 'cl-meter';
+    meter.innerHTML = '<i></i>';
     const update = () => {
       const done = boxes.filter((b) => b.checked).length;
       status.textContent = `${done}/${boxes.length} done`;
+      meter.firstElementChild!.setAttribute('style', `width:${(done / boxes.length) * 100}%`);
       boxes.forEach((b) => b.closest('li')?.classList.toggle('done', b.checked));
     };
     boxes.forEach((box, i) => {
@@ -53,7 +57,7 @@ function initChecklists() {
       store.remove(key);
       update();
     });
-    bar.append(status, reset);
+    bar.append(status, meter, reset);
     list.append(bar);
     update();
   });
@@ -140,6 +144,8 @@ function initScorer() {
       const gate = (name: string, ok: boolean) => `<span class="tag ${ok ? 'success' : 'danger'}">${name}: ${ok ? 'pass' : 'fail'}</span>`;
       out('gates').innerHTML = gate('Qualify exit', qualify) + gate('Validate exit', validate) + gate('Commit entry', commit);
       store.set(key, { ...v, value, mult });
+      // Lets on-page visuals (the radar in viz/metrics.astro) follow the scorer.
+      document.dispatchEvent(new CustomEvent('meddpicc', { detail: { scores: v, avg, qualify, validate, commit } }));
     };
     apply(saved);
     host.addEventListener('input', compute);
@@ -163,6 +169,47 @@ function initToc() {
   map.forEach((_, id) => { const el = document.getElementById(id); if (el) obs.observe(el); });
 }
 
+// KPI tiles: draw a meter under any percentage value and count numbers up when they scroll in.
+function initKpis() {
+  const tiles = Array.from(document.querySelectorAll<HTMLElement>('.kpi'));
+  const io = 'IntersectionObserver' in window
+    ? new IntersectionObserver((entries) => entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        io!.unobserve(e.target);
+        reveal(e.target as HTMLElement);
+      }), { rootMargin: '0px 0px -10% 0px' })
+    : null;
+  const reveal = (tile: HTMLElement) => {
+    const bar = tile.querySelector<HTMLElement>('.kpi-meter i');
+    if (bar) bar.style.width = bar.dataset.w!;
+    const val = tile.querySelector<HTMLElement>('.kpi-value');
+    const m = val?.textContent?.match(/^(\D*)(\d+(?:\.\d+)?)(.*)$/s);
+    if (!val || !m || val.children.length || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const [, pre, n, post] = m;
+    const target = Number(n), dp = n.includes('.') ? n.split('.')[1].length : 0, t0 = performance.now();
+    const step = (t: number) => {
+      const k = Math.min(1, (t - t0) / 700), eased = 1 - Math.pow(1 - k, 3);
+      val.textContent = pre + (target * eased).toFixed(dp) + post;
+      if (k < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  };
+  tiles.forEach((tile) => {
+    const text = tile.querySelector('.kpi-value')?.textContent ?? '';
+    const pct = text.match(/(\d+(?:\.\d+)?)\s*(?:[–-]\s*(\d+(?:\.\d+)?))?\s*%/);
+    if (pct) {
+      const lo = Number(pct[1]), hi = pct[2] ? Number(pct[2]) : lo;
+      const meter = document.createElement('span');
+      meter.className = 'kpi-meter';
+      meter.setAttribute('aria-hidden', 'true');
+      meter.innerHTML = `<i data-w="${Math.min(100, (lo + hi) / 2)}%"></i>`;
+      tile.append(meter);
+    }
+    if (io) io.observe(tile); else reveal(tile);
+  });
+}
+
+initKpis();
 initChecklists();
 initWhitespace();
 initScorer();

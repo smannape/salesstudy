@@ -1,0 +1,133 @@
+---
+// Conversion funnel for the six-stage model. Figures are the page's table (Zeliq, indicative).
+const stages = [
+  { n: 'Discovery', lo: 55, hi: 72, note: 'Prospect redefines scope ("do you also do X?"); silence >14 days.' },
+  { n: 'Demo', lo: 42, hi: 58, note: 'Largest drop. Poorly personalised demo; 67% of deals with no written next step stall.' },
+  { n: 'Technical validation', lo: 78, hi: 88, note: "Bad sign if the prospect's IT team wasn't asked for." },
+  { n: 'Proposal', lo: 60, hi: 75, note: 'Reply in 7–14 days. Committee multiplies as procurement/legal arrive; champion lacks materials.' },
+  { n: 'Negotiation', lo: 65, hi: 80, note: '2–4 meetings, 14–30 days. 73% of programmes under-train; 12–18% margin left; unannounced C-level escalation.' },
+  { n: 'Closing & signature', lo: 70, hi: 85, note: '7–21 days. Silence >14 days cuts close rate 38%.' }
+];
+const prod = (k: 'lo' | 'hi') => stages.reduce((a, s) => a * (s[k] / 100), 1);
+const cumLo = Math.round(prod('lo') * 100);
+const cumHi = Math.round(prod('hi') * 100);
+---
+<section class="viz cyc" aria-labelledby="cyc-title" data-cyc data-stages={JSON.stringify(stages)}>
+  <div class="viz-head">
+    <h2 id="cyc-title">Where deals leak</h2>
+    <p class="viz-hint">Drag the slider; tap a stage for its stall signal.</p>
+  </div>
+  <div class="viz-controls">
+    <label for="cyc-n">Start with <output class="cyc-nout num" data-nout>100</output> opportunities</label>
+    <input id="cyc-n" type="range" min="10" max="500" step="10" value="100" data-n />
+    <span class="tag warning">indicative</span>
+  </div>
+  <div class="viz-stage">
+    <div class="cyc-axis" aria-hidden="true"><span>Stage</span><span>Conversion to next · 0–100%</span><span>Deals entering → expected</span></div>
+    <ol class="cyc-rows">
+      {stages.map((s, i) => (
+        <li>
+          <button type="button" class="cyc-row" data-i={i} aria-label={`${s.n}: ${s.lo} to ${s.hi} percent convert`}>
+            <span class="cyc-name"><span class="v-mono-h">{String(i + 1).padStart(2, '0')}</span>{s.n}</span>
+            <span class="cyc-track" aria-hidden="true">
+              <span class="cyc-band" style={`left:${s.lo}%;width:${s.hi - s.lo}%`}></span>
+              <span class="cyc-mid" style={`left:${(s.lo + s.hi) / 2}%`}></span>
+              <span class="cyc-pct num" style={`left:${s.hi}%`}>{s.lo}–{s.hi}%</span>
+            </span>
+            <span class="cyc-funnel" aria-hidden="true">
+              <span class="cyc-bar" data-bar></span>
+              <span class="cyc-count num" data-count></span>
+            </span>
+          </button>
+        </li>
+      ))}
+      <li>
+        <div class="cyc-row cyc-won">
+          <span class="cyc-name"><span class="v-mono-h">→</span>Expected wins</span>
+          <span class="cyc-track cyc-sum small">Midpoint rates multiplied; range <span class="num" data-range></span></span>
+          <span class="cyc-funnel"><span class="cyc-bar accent" data-bar></span><span class="cyc-count num" data-count></span></span>
+        </div>
+      </li>
+    </ol>
+  </div>
+  <div class="viz-legend">
+    <span><i style="background:var(--accent-soft);outline:1px solid var(--accent)"></i>Conversion range</span>
+    <span><i style="width:2px;height:12px"></i>Midpoint</span>
+    <span><i style="background:var(--ink-3)"></i>Deals entering stage</span>
+  </div>
+  <div class="viz-readout" aria-live="polite" data-readout>
+    <p><b>Reading the funnel.</b> Multiplying the six stage rates gives <span class="num">{cumLo}–{cumHi}%</span> from discovery to won. The same source quotes a cumulative <span class="num">16–28%</span>, so the two don't reconcile <span class="tag danger">unverified</span>. Use the shape (Demo is the cliff), not the exact number.</p>
+  </div>
+</section>
+
+<style>
+  .cyc-axis { display: grid; grid-template-columns: 190px 1fr 1fr; gap: 20px; padding: 10px 16px; border-bottom: 1px solid var(--rule); font: 500 10.5px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
+  .cyc-rows { list-style: none; margin: 0; padding: 0; }
+  .cyc-rows li { margin: 0; border-bottom: 1px solid var(--rule); }
+  .cyc-rows li:last-child { border-bottom: 0; }
+  .cyc-row { display: grid; grid-template-columns: 190px 1fr 1fr; gap: 20px; align-items: center; width: 100%; min-height: 56px; padding: 8px 16px; background: none; border: 0; text-align: left; cursor: pointer; color: var(--ink); transition: background var(--dur) var(--ease); }
+  button.cyc-row:hover, button.cyc-row.is-hot { background: var(--paper); }
+  .cyc-row.is-hot .cyc-name { color: var(--accent); }
+  .cyc-won { cursor: default; background: var(--paper-3); }
+  .cyc-name { font: 600 14.5px/1.25 var(--display); display: flex; gap: 10px; align-items: baseline; }
+  .v-mono-h { font: 500 10.5px var(--mono); color: var(--ink-2); letter-spacing: .06em; }
+  .cyc-track { position: relative; height: 22px; background: linear-gradient(90deg, var(--rule) 1px, transparent 1px) 0 0 / 25% 100%, var(--paper-3); }
+  .cyc-band { position: absolute; top: 3px; bottom: 3px; background: var(--accent-soft); border: 1px solid var(--accent); }
+  .cyc-mid { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: var(--ink); }
+  .cyc-pct { position: absolute; top: 50%; transform: translate(6px, -50%); font: 500 11px var(--mono); color: var(--ink-2); white-space: nowrap; }
+  .cyc-sum { background: none; height: auto; color: var(--ink-2); font-size: 13px; }
+  .cyc-funnel { position: relative; height: 26px; display: flex; align-items: center; justify-content: center; }
+  .cyc-bar { position: absolute; top: 0; bottom: 0; left: 50%; transform: translateX(-50%); width: 0; background: var(--ink-3); transition: width .5s var(--ease); }
+  .cyc-bar.accent { background: var(--accent); }
+  .cyc-count { position: relative; font: 600 13px var(--mono); color: var(--paper); mix-blend-mode: normal; padding: 0 6px; background: var(--ink); }
+  .cyc-won .cyc-count { background: var(--accent); color: var(--accent-ink); }
+  .cyc-nout { font: 600 15px var(--mono); color: var(--ink); min-width: 3ch; display: inline-block; text-align: right; }
+  @media (max-width: 719px) {
+    .cyc-axis { display: none; }
+    .cyc-row { grid-template-columns: 1fr; gap: 8px; padding: 12px; }
+    .cyc-pct { right: 4px; left: auto !important; transform: translateY(-50%); }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-cyc]').forEach((root) => {
+    const stages: { n: string; lo: number; hi: number; note: string }[] = JSON.parse(root.dataset.stages!);
+    const slider = root.querySelector<HTMLInputElement>('[data-n]')!;
+    const nout = root.querySelector('[data-nout]')!;
+    const bars = Array.from(root.querySelectorAll<HTMLElement>('[data-bar]'));
+    const counts = Array.from(root.querySelectorAll<HTMLElement>('[data-count]'));
+    const rangeEl = root.querySelector('[data-range]')!;
+    const readout = root.querySelector<HTMLElement>('[data-readout]')!;
+    const rows = Array.from(root.querySelectorAll<HTMLButtonElement>('button.cyc-row'));
+
+    const render = () => {
+      const n = Number(slider.value);
+      nout.textContent = String(n);
+      let live = n;
+      stages.forEach((s, i) => {
+        bars[i].style.width = `${Math.max(2, (live / n) * 100)}%`;
+        counts[i].textContent = String(Math.round(live));
+        live *= (s.lo + s.hi) / 200;
+      });
+      const last = stages.length;
+      bars[last].style.width = `${Math.max(2, (live / n) * 100)}%`;
+      counts[last].textContent = `≈${Math.round(live)}`;
+      const lo = stages.reduce((a, s) => a * s.lo / 100, n), hi = stages.reduce((a, s) => a * s.hi / 100, n);
+      rangeEl.textContent = `${Math.round(lo)}–${Math.round(hi)}`;
+    };
+    slider.addEventListener('input', render);
+    render();
+
+    rows.forEach((row) => row.addEventListener('click', () => {
+      const i = Number(row.dataset.i);
+      const s = stages[i];
+      rows.forEach((r) => r.classList.toggle('is-hot', r === row));
+      const n = Number(slider.value);
+      const entering = stages.slice(0, i).reduce((a, x) => a * (x.lo + x.hi) / 200, n);
+      const lost = entering * (1 - (s.lo + s.hi) / 200);
+      readout.innerHTML = `<h3>${String(i + 1).padStart(2, '0')} · ${s.n} — ${s.lo}–${s.hi}% advance</h3>
+        <p><b>Failure point / stall signal:</b> ${s.note}</p>
+        <p class="small muted">At ${n} starting opportunities, ≈${Math.round(entering)} reach this stage and ≈${Math.round(lost)} drop out here (midpoint rate).</p>`;
+    }));
+  });
+</script>
