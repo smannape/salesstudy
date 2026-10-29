@@ -4,3 +4,7 @@ dist/
 .netlify/
 .DS_Store
 src/data/incoming.json
+
+# Agent files kept local for now
+.claude/
+.github/
