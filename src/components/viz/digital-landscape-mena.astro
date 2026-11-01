@@ -1,0 +1,292 @@
+---
+import programmes from '../../data/mena-programmes.json';
+
+// Silence chart: x axis runs from 2021 to the document's as-of date.
+const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sept', 'oct', 'nov', 'dec'];
+const AS_OF = 2026 + 9 / 12; // Oct 2026 (months are zero-based)
+const X0 = 2021;
+const parse = (s: string) => {
+  const m = s.toLowerCase().match(/^([a-z]+) (\d{4})$/);
+  if (m) return { t: Number(m[2]) + MONTHS.indexOf(m[1]) / 12, yearOnly: false };
+  const y = s.match(/^(\d{4})/);
+  return y ? { t: Number(y[1]) + 0.5, yearOnly: true } : null; // year-only sits mid-year; "Undated" has no position
+};
+const pos = (t: number) => ((t - X0) / (AS_OF - X0)) * 100;
+const COUNTRIES = ['KSA', 'Bahrain', 'UAE', 'Kuwait', 'Qatar', 'Oman', 'Iraq'];
+const rows = programmes.map((p, i) => {
+  const d = parse(p.last_confirmed);
+  const gap = d && !d.yearOnly ? Math.max(0, Math.round((AS_OF - d.t) * 12)) : null;
+  return { ...p, i, d, gap, left: d ? Math.min(100, pos(d.t)) : null };
+});
+const years = [2021, 2022, 2023, 2024, 2025, 2026];
+const withValue = programmes.filter((p) => p.value).length;
+
+// From the page's vendor landscape table; country = where it lists a public programme.
+const VENDORS = [
+  { n: 'SLB', c: ['KSA', 'Bahrain', 'UAE', 'Kuwait', 'Qatar', 'Oman'], role: 'Prime on drilling automation and production AI; Delfi/Lumi platform.' },
+  { n: 'Halliburton Landmark', c: ['KSA', 'UAE', 'Kuwait', 'Oman', 'Iraq'], role: 'DecisionSpace 365 / Digital Field Solver; subsurface-to-production integration.' },
+  { n: 'Honeywell', c: ['KSA', 'UAE', 'Kuwait', 'Qatar', 'Oman'], role: 'Automation and predictive maintenance.' },
+  { n: 'Baker Hughes', c: ['KSA', 'UAE', 'Kuwait', 'Qatar'], role: 'Equipment-attached digital; no DOF prime in the region since the KwIDF pilot era.' },
+  { n: 'Microsoft', c: ['KSA', 'UAE', 'Kuwait', 'Qatar'], role: 'Cloud and LLM substrate; never named as DOF prime.' },
+  { n: 'Emerson (+AspenTech)', c: ['KSA', 'Qatar', 'Oman', 'Iraq'], role: 'Instrumentation and asset monitoring; no AspenTech enterprise deal public.' },
+  { n: 'AVEVA (Schneider)', c: ['KSA', 'UAE', 'Iraq'], role: 'Data and visualisation layer; Cognite acquisition pending ($3.1 bn, Jun 2026).' },
+  { n: 'Weatherford', c: ['Bahrain', 'Kuwait'], role: 'ForeSite production optimisation.' },
+  { n: 'Cognite', c: ['KSA', 'UAE'], role: 'Industrial data platform under an SLB or hyperscaler prime.' },
+  { n: 'AIQ (Presight/ADNOC)', c: ['UAE', 'Oman'], role: 'NOC-owned AI prime, a model other NOCs have not copied. Also exports to Kazakhstan, Egypt and Indonesia.' },
+  { n: 'KBR', c: ['Qatar', 'Iraq'], role: 'Field management services with digital scope.' },
+  { n: 'Kongsberg / Falkor', c: ['Oman'], role: 'Digital twin.' },
+  { n: 'Palantir', c: ['Bahrain'], role: 'Data integration.' },
+  { n: 'Jereh', c: ['UAE'], role: 'Instrumentation EPC: ADNOC Onshore well digitalisation ($920 M).' }
+];
+
+const GENS = [
+  { n: 'Generation 1', y: '2007–2016', from: 2007, to: 2016, what: 'Field-by-field DOF pilots with a service-company prime.', ex: 'KOC KwIDF, Aramco i-Field, PDO Smart Fields, Rumaila ACE', kpi: '3–7% production uplift' },
+  { n: 'Generation 2', y: '2017–2023', from: 2017, to: 2023, what: 'Enterprise command centres and NOC-owned platforms; the prime shifted to software/automation vendors or in-house teams.', ex: 'ADNOC Panorama/Thamama, Aramco 4IR Center, PDO IOC', kpi: '"$ value realised", a number only the NOC can audit' },
+  { n: 'Generation 3', y: '2024–2026', from: 2024, to: 2026, what: 'AI/agentic layers bought as multi-year platform contracts, with digital scope bundled into drilling, field-management or EPC awards.', ex: 'ENERGYai ($340 M), AiPSO, RTOC, PDO autonomous programme, KBR Majnoon, Halliburton Bin Umar/Sindbad, Jereh ($920 M)', kpi: 'AI use-case counts, $ value and autonomous-operations targets' }
+];
+const gx = (y: number) => ((y - 2007) / 20) * 100;
+---
+<section class="viz" aria-labelledby="mena-title" data-mena>
+  <div class="viz-head">
+    <h2 id="mena-title">How long since anyone confirmed it</h2>
+    <p class="viz-hint">Filter by country, sort by silence, tap a programme for details.</p>
+  </div>
+
+  <div class="mena-stats">
+    <div><b class="num">{programmes.length}</b><span>Named programmes</span></div>
+    <div><b class="num">{COUNTRIES.length}</b><span>Countries</span></div>
+    <div><b class="num">{withValue}</b><span>With a public value</span></div>
+    <div><b class="num">{VENDORS.length}</b><span>Vendors mapped</span></div>
+  </div>
+
+  <div class="viz-controls">
+    <div class="seg" role="group" aria-label="Filter by country">
+      <button type="button" aria-pressed="true" data-country="all">All</button>
+      {COUNTRIES.map((c) => <button type="button" aria-pressed="false" data-country={c}>{c}</button>)}
+    </div>
+    <div class="seg" role="group" aria-label="Sort">
+      <button type="button" aria-pressed="true" data-sort="country">By country</button>
+      <button type="button" aria-pressed="false" data-sort="silence">Most silent</button>
+    </div>
+  </div>
+
+  <div class="viz-stage sil">
+    <div class="sil-axis" aria-hidden="true">
+      <span></span>
+      <div class="sil-track">{years.map((y) => <i style={`left:${pos(y)}%`}>{y}</i>)}<i class="sil-now" style="left:100%">Oct 26</i></div>
+      <span></span>
+    </div>
+    <ol class="sil-rows" data-rows>
+      {rows.map((r) => (
+        <li data-c={r.country} data-i={r.i} data-gap={r.gap ?? (r.d ? -1 : 999)}>
+          <button type="button" class="sil-row" aria-pressed="false" data-row={r.i} aria-label={`${r.programme}, ${r.operator}, last confirmed ${r.last_confirmed}`}>
+            <span class="sil-name"><em>{r.country}</em>{r.programme}</span>
+            <span class="sil-track">
+              {years.map((y) => <i class="sil-grid" style={`left:${pos(y)}%`}></i>)}
+              {r.left !== null
+                ? <><span class="sil-line" style={`left:${r.left}%;right:0`}></span><span class:list={['sil-dot', { hollow: r.d?.yearOnly, val: r.value }]} style={`left:${r.left}%`}></span></>
+                : <span class="sil-undated">undated</span>}
+            </span>
+            <span class="sil-gap num">{r.gap !== null ? (`${r.gap} mo`) : r.d ? 'year only' : '—'}</span>
+          </button>
+        </li>
+      ))}
+    </ol>
+  </div>
+  <div class="viz-legend">
+    <span><i style="border-radius:50%"></i>Last public confirmation</span>
+    <span><i style="border-radius:50%;background:var(--accent)"></i>Public contract value</span>
+    <span><i style="border-radius:50%;background:transparent;box-shadow:inset 0 0 0 2px var(--ink)"></i>Year only, placed mid-year</span>
+    <span>Line length = silence up to Oct 2026, not evidence of a stall</span>
+  </div>
+  <div class="viz-readout" aria-live="polite" data-readout>
+    <p>The gap to today is the honest measure of how current a status is. Tap a programme to see its operator, vendors and objective.</p>
+  </div>
+</section>
+
+<section class="viz" aria-labelledby="mena-v-title" data-vendors>
+  <div class="viz-head">
+    <h2 id="mena-v-title">Who holds what, by country</h2>
+    <p class="viz-hint">Tap a vendor for its role; tap a country to light up who is there.</p>
+  </div>
+  <div class="viz-stage viz-scroll">
+    <table class="vm" style="min-width:600px">
+      <thead><tr><th scope="col">Vendor</th>{COUNTRIES.map((c) => <th scope="col"><button type="button" data-vc={c} aria-pressed="false">{c}</button></th>)}<th scope="col" class="vm-n">Footprint</th></tr></thead>
+      <tbody>
+        {VENDORS.map((v, i) => (
+          <tr data-v={i}>
+            <th scope="row"><button type="button" data-vb={i} aria-pressed="false">{v.n}</button></th>
+            {COUNTRIES.map((c) => <td data-col={c}>{v.c.includes(c) ? <span class="vm-dot" role="img" aria-label={`${v.n} in ${c}`}></span> : <span class="vm-none" aria-hidden="true"></span>}</td>)}
+            <td class="vm-n num">{v.c.length}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <div class="viz-readout" aria-live="polite" data-v-readout>
+    <p>SLB holds the broadest 2025–26 footprint. AVEVA, Emerson and Honeywell appear as data and automation layers under someone else's prime rather than as DOF primes.</p>
+  </div>
+</section>
+
+<section class="viz" aria-labelledby="mena-g-title" data-gens>
+  <div class="viz-head">
+    <h2 id="mena-g-title">Three contract generations <span class="tag">likely</span></h2>
+    <p class="viz-hint">Tap a generation. KwIDF is the only programme still run on the first.</p>
+  </div>
+  <div class="gens">
+    {GENS.map((g, i) => (
+      <button type="button" class="gen" data-gen={i} aria-pressed={i === 2 ? 'true' : 'false'} style={`margin-left:${gx(g.from)}%;width:${Math.max(gx(g.to + 1) - gx(g.from), 0)}%`}>
+        <b>{g.n}</b><span class="num">{g.y}</span>
+      </button>
+    ))}
+  </div>
+  <div class="viz-readout" aria-live="polite">
+    {GENS.map((g, i) => (
+      <div data-gen-info={i} hidden={i !== 2}>
+        <h3>{g.n} · {g.y}</h3>
+        <p>{g.what}</p>
+        <p class="small"><strong>Programmes:</strong> {g.ex}</p>
+        <p class="small"><strong>KPI:</strong> {g.kpi}</p>
+      </div>
+    ))}
+  </div>
+</section>
+
+<script type="application/json" id="mena-data" set:html={JSON.stringify({ programmes, vendors: VENDORS })}></script>
+
+<style>
+  .mena-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--rule); border-right: 0; margin-bottom: 14px; }
+  .mena-stats div { padding: 12px 14px; border-right: 1px solid var(--rule); background: var(--paper-2); }
+  .mena-stats b { display: block; font: 600 28px/1 var(--display); letter-spacing: -.02em; }
+  .mena-stats span { display: block; margin-top: 8px; font: 500 10.5px/1.3 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
+  @media (max-width: 559px) { .mena-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .mena-stats div { border-bottom: 1px solid var(--rule); } }
+
+  .sil-axis, .sil-row { display: grid; grid-template-columns: minmax(180px, 300px) minmax(0, 1fr) 76px; gap: 14px; align-items: center; }
+  .sil-axis { padding: 12px 14px 4px; }
+  .sil-axis .sil-track { height: 18px; }
+  .sil-track { position: relative; display: block; height: 18px; }
+  .sil-axis i { position: absolute; top: 0; transform: translateX(-50%); font: 500 10.5px var(--mono); font-style: normal; color: var(--ink-2); white-space: nowrap; }
+  .sil-axis i.sil-now { color: var(--accent); transform: translateX(-100%); }
+  .sil-axis i:first-child { transform: none; }
+  .sil-rows { list-style: none; margin: 0; padding: 0; }
+  .sil-rows li { margin: 0; border-top: 1px solid var(--rule); }
+  .sil-rows li[hidden] { display: none; }
+  .sil-row { width: 100%; min-height: 36px; padding: 4px 14px; border: 0; background: none; cursor: pointer; text-align: left; color: var(--ink); transition: background var(--dur) var(--ease); }
+  .sil-row:hover { background: var(--paper-3); }
+  .sil-row[aria-pressed="true"] { background: var(--accent-soft); }
+  .sil-name { font: 500 13.5px/1.25 var(--sans); min-width: 0; }
+  .sil-name em { display: inline-block; width: 58px; font: 500 10px var(--mono); font-style: normal; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-2); }
+  .sil-grid { position: absolute; top: -8px; bottom: -8px; border-left: 1px solid var(--rule); }
+  .sil-line { position: absolute; top: 50%; border-top: 2px dashed var(--ink-3); }
+  .sil-dot { position: absolute; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: var(--ink); }
+  .sil-dot.val { background: var(--accent); }
+  .sil-dot.hollow { background: var(--paper-2); box-shadow: inset 0 0 0 2px var(--ink); }
+  .sil-undated { position: absolute; right: 0; top: 0; font: 400 11px/18px var(--mono); color: var(--ink-3); }
+  .sil-gap { font: 400 12px var(--mono); color: var(--ink-2); text-align: right; }
+  @media (max-width: 699px) {
+    .sil-axis { grid-template-columns: minmax(0, 1fr) 72px; padding: 10px 12px 2px; }
+    .sil-axis > span:first-child { display: none; }
+    .sil-axis i.sil-now { display: none; }
+    .sil-gap { white-space: nowrap; }
+    .sil-row { grid-template-columns: minmax(0, 1fr) 72px; row-gap: 4px; min-height: 44px; padding: 8px 12px; }
+    .sil-name { grid-column: 1 / 3; }
+    .sil-gap { grid-row: 2; grid-column: 2; }
+    .sil-track { grid-row: 2; grid-column: 1; }
+  }
+  @media (pointer: coarse) { .sil-row { min-height: 44px; } }
+
+  .vm { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .vm th, .vm td { padding: 0; border-bottom: 1px solid var(--rule); text-align: center; vertical-align: middle; }
+  .vm thead th { border-bottom: 1px solid var(--rule-strong); }
+  .vm button { width: 100%; min-height: 40px; padding: 4px 8px; border: 0; background: none; cursor: pointer; color: var(--ink); }
+  .vm thead button { font: 500 10.5px var(--mono); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-2); }
+  .vm tbody th { text-align: left; min-width: 170px; }
+  .vm tbody th button { text-align: left; font: 500 13.5px var(--sans); padding-left: 14px; }
+  .vm button:hover { color: var(--accent); }
+  .vm button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
+  .vm-n { width: 76px; font: 400 12px var(--mono); color: var(--ink-2); }
+  .vm-dot { display: inline-block; width: 14px; height: 14px; border-radius: 50%; background: var(--ink); vertical-align: middle; transition: background var(--dur) var(--ease); }
+  .vm-none { display: inline-block; width: 4px; height: 4px; border-radius: 50%; background: var(--rule); vertical-align: middle; }
+  .vm td.is-hot .vm-dot, .vm tr.is-hot .vm-dot { background: var(--accent); }
+  .vm tr.is-dim th button, .vm tr.is-dim .vm-n { opacity: .35; }
+  .vm tr.is-dim .vm-dot { opacity: .2; }
+
+  .gens { display: flex; flex-direction: column; gap: 3px; padding: 4px 0 14px; }
+  .gen { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 2px 10px; min-height: 48px; min-width: 150px; max-width: 100%; padding: 6px 12px; border: 1px solid var(--rule-strong); background: var(--paper-2); color: var(--ink); cursor: pointer; text-align: left; }
+  .gen b { font: 600 14px var(--display); }
+  .gen span { font: 400 11px var(--mono); }
+  .gen:hover { border-color: var(--accent); }
+  .gen[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+  @media (max-width: 699px) { .gen { margin-left: 0 !important; width: 100% !important; } }
+</style>
+
+<script>
+  type P = { programme: string; operator: string; country: string; vendors: string; objective: string; last_confirmed: string; value: string | null };
+  type V = { n: string; c: string[]; role: string };
+  const { programmes, vendors } = JSON.parse(document.getElementById('mena-data')!.textContent!) as { programmes: P[]; vendors: V[] };
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+
+  // Silence chart
+  const root = document.querySelector<HTMLElement>('[data-mena]')!;
+  const list = root.querySelector<HTMLElement>('[data-rows]')!;
+  const items = Array.from(list.querySelectorAll<HTMLLIElement>('li'));
+  const readout = root.querySelector<HTMLElement>('[data-readout]')!;
+  const press = (group: Element[], on: Element | null) => group.forEach((b) => b.setAttribute('aria-pressed', String(b === on)));
+
+  const countryBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-country]'));
+  countryBtns.forEach((b) => b.addEventListener('click', () => {
+    press(countryBtns, b);
+    items.forEach((li) => (li.hidden = b.dataset.country !== 'all' && li.dataset.c !== b.dataset.country));
+  }));
+  const sortBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-sort]'));
+  sortBtns.forEach((b) => b.addEventListener('click', () => {
+    press(sortBtns, b);
+    const silent = b.dataset.sort === 'silence';
+    [...items]
+      .sort((x, y) => silent ? Number(y.dataset.gap) - Number(x.dataset.gap) : Number(x.dataset.i) - Number(y.dataset.i))
+      .forEach((li) => list.append(li));
+  }));
+  const rowBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-row]'));
+  rowBtns.forEach((b) => b.addEventListener('click', () => {
+    press(rowBtns, b);
+    const p = programmes[Number(b.dataset.row)];
+    readout.innerHTML = `<div class="eyebrow">${esc(p.country)} · ${esc(p.operator)} · last confirmed ${esc(p.last_confirmed)}</div>
+      <h3>${esc(p.programme)}</h3><p>${esc(p.objective)}</p>
+      <p class="small"><strong>Vendors:</strong> ${esc(p.vendors)}</p>
+      <p class="small"><strong>Public value:</strong> ${p.value ? esc(p.value) : 'not public'}</p>`;
+  }));
+
+  // Vendor matrix
+  const vm = document.querySelector<HTMLElement>('[data-vendors]')!;
+  const vOut = vm.querySelector<HTMLElement>('[data-v-readout]')!;
+  const rowsV = Array.from(vm.querySelectorAll<HTMLTableRowElement>('tbody tr'));
+  const allV = Array.from(vm.querySelectorAll<HTMLButtonElement>('[data-vb],[data-vc]'));
+  const clear = () => {
+    rowsV.forEach((r) => r.classList.remove('is-hot', 'is-dim'));
+    vm.querySelectorAll('td.is-hot').forEach((c) => c.classList.remove('is-hot'));
+  };
+  vm.querySelectorAll<HTMLButtonElement>('[data-vb]').forEach((b) => b.addEventListener('click', () => {
+    clear(); press(allV, b);
+    const i = Number(b.dataset.vb), v = vendors[i];
+    rowsV.forEach((r, j) => r.classList.add(j === i ? 'is-hot' : 'is-dim'));
+    vOut.innerHTML = `<div class="eyebrow">${v.c.length} of 7 countries · ${esc(v.c.join(', '))}</div><h3>${esc(v.n)}</h3><p>${esc(v.role)}</p>`;
+  }));
+  vm.querySelectorAll<HTMLButtonElement>('[data-vc]').forEach((b) => b.addEventListener('click', () => {
+    clear(); press(allV, b);
+    const c = b.dataset.vc!;
+    const here = vendors.filter((v) => v.c.includes(c));
+    rowsV.forEach((r, j) => {
+      r.classList.add(vendors[j].c.includes(c) ? 'is-hot' : 'is-dim');
+      r.querySelector(`td[data-col="${c}"]`)?.classList.add('is-hot');
+    });
+    vOut.innerHTML = `<div class="eyebrow">${here.length} vendors with a public programme</div><h3>${esc(c)}</h3><p>${esc(here.map((v) => v.n).join(', '))}</p>`;
+  }));
+
+  // Generations
+  const gens = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-gen]'));
+  const infos = Array.from(document.querySelectorAll<HTMLElement>('[data-gen-info]'));
+  gens.forEach((b, i) => b.addEventListener('click', () => {
+    press(gens, b);
+    infos.forEach((n, j) => (n.hidden = j !== i));
+  }));
+</script>

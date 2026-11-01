@@ -1,0 +1,200 @@
+[
+  {
+    "programme": "Khurais intelligent field",
+    "operator": "Aramco",
+    "country": "KSA",
+    "vendors": "In-house (PI data layer)",
+    "objective": "500+ wells fully instrumented, APC; prod +15%",
+    "last_confirmed": "2026 (site)",
+    "value": null
+  },
+  {
+    "programme": "4IR / corporate AI",
+    "operator": "Aramco",
+    "country": "KSA",
+    "vendors": "NVIDIA, stc, Yokogawa, HUMAIN",
+    "objective": "442 AI use cases; $5.3 bn realised value 2025",
+    "last_confirmed": "Mar 2026",
+    "value": "stc HPC ~$371 M"
+  },
+  {
+    "programme": "CNTXT",
+    "operator": "Aramco",
+    "country": "KSA",
+    "vendors": "Cognite, Google Cloud",
+    "objective": "Data platform JV",
+    "last_confirmed": "May 2024",
+    "value": null
+  },
+  {
+    "programme": "Plant.Digital",
+    "operator": "Aramco",
+    "country": "KSA",
+    "vendors": "Honeywell",
+    "objective": "Plant operations software JV",
+    "last_confirmed": "Sept 2023",
+    "value": null
+  },
+  {
+    "programme": "Bapco + Palantir",
+    "operator": "Bapco Upstream",
+    "country": "Bahrain",
+    "vendors": "Palantir",
+    "objective": "Foundry/AIP operating picture",
+    "last_confirmed": "Feb 2024",
+    "value": null
+  },
+  {
+    "programme": "Bapco + Geminus/SLB",
+    "operator": "Bapco Upstream",
+    "country": "Bahrain",
+    "vendors": "Geminus AI, SLB",
+    "objective": "Physics-AI network optimisation",
+    "last_confirmed": "Apr 2026",
+    "value": null
+  },
+  {
+    "programme": "Panorama",
+    "operator": "ADNOC",
+    "country": "UAE",
+    "vendors": "AVEVA, Honeywell",
+    "objective": "Enterprise command centre; >$1 bn value",
+    "last_confirmed": "Feb 2021",
+    "value": null
+  },
+  {
+    "programme": "ICM",
+    "operator": "ADNOC",
+    "country": "UAE",
+    "vendors": "Halliburton Landmark",
+    "objective": "Countrywide capacity twin",
+    "last_confirmed": "2023 (SPE)",
+    "value": null
+  },
+  {
+    "programme": "RoboWell",
+    "operator": "ADNOC",
+    "country": "UAE",
+    "vendors": "AIQ, Halliburton",
+    "objective": "Autonomous gas-lift control; 300-well target",
+    "last_confirmed": "Jul 2024",
+    "value": null
+  },
+  {
+    "programme": "ENERGYai",
+    "operator": "ADNOC",
+    "country": "UAE",
+    "vendors": "AIQ, Microsoft, SLB",
+    "objective": "Agentic AI for subsurface, all assets",
+    "last_confirmed": "Aug 2025",
+    "value": "$340 M"
+  },
+  {
+    "programme": "AiPSO",
+    "operator": "ADNOC",
+    "country": "UAE",
+    "vendors": "SLB, Cognite",
+    "objective": "Production system optimisation, 25 fields by 2027",
+    "last_confirmed": "Oct 2026",
+    "value": null
+  },
+  {
+    "programme": "Well digitalisation EPC",
+    "operator": "ADNOC Onshore",
+    "country": "UAE",
+    "vendors": "Jereh, e&, AIQ",
+    "objective": ">2,000 wells remote-controlled by 2027",
+    "last_confirmed": "Nov 2024",
+    "value": "$920 M"
+  },
+  {
+    "programme": "AI RTOC",
+    "operator": "ADNOC",
+    "country": "UAE",
+    "vendors": "SLB",
+    "objective": "120+ rigs",
+    "last_confirmed": "Aug 2026",
+    "value": null
+  },
+  {
+    "programme": "KwIDF",
+    "operator": "KOC",
+    "country": "Kuwait",
+    "vendors": "Halliburton, SLB, Weatherford (+ HEISCO support)",
+    "objective": ">5,000 wells; 3–5% uplift",
+    "last_confirmed": "Oct 2026",
+    "value": "HEISCO KWD 26 M"
+  },
+  {
+    "programme": "Ahmadi Innovation Valley",
+    "operator": "KOC",
+    "country": "Kuwait",
+    "vendors": "SLB, Halliburton, Baker Hughes",
+    "objective": "~100 technology projects",
+    "last_confirmed": "Aug 2026",
+    "value": null
+  },
+  {
+    "programme": "QatarEnergy LNG DT v2",
+    "operator": "QatarEnergy LNG",
+    "country": "Qatar",
+    "vendors": "Baker Hughes Digital, Honeywell",
+    "objective": "AI machinery analytics, 14 trains",
+    "last_confirmed": "Jul 2025",
+    "value": null
+  },
+  {
+    "programme": "Al Shaheen Going Digital",
+    "operator": "North Oil Co",
+    "country": "Qatar",
+    "vendors": "Not public",
+    "objective": "Surface twin, onshore control",
+    "last_confirmed": "Undated",
+    "value": null
+  },
+  {
+    "programme": "Bait Al Haitham IOC",
+    "operator": "PDO",
+    "country": "Oman",
+    "vendors": "Emerson (iAMS); integrator not public",
+    "objective": "13,000+ wells remote ops",
+    "last_confirmed": "May 2026",
+    "value": null
+  },
+  {
+    "programme": "Kognitwin enterprise twin",
+    "operator": "PDO",
+    "country": "Oman",
+    "vendors": "Kongsberg Digital / Falkor",
+    "objective": "O&M twin",
+    "last_confirmed": "Oct 2026",
+    "value": null
+  },
+  {
+    "programme": "Autonomous Production Programme",
+    "operator": "PDO",
+    "country": "Oman",
+    "vendors": "SLB + Halliburton, Onsor",
+    "objective": "Toward autonomous operations",
+    "last_confirmed": "Oct 2026",
+    "value": null
+  },
+  {
+    "programme": "Rumaila DOF",
+    "operator": "ROO / BEC",
+    "country": "Iraq",
+    "vendors": "Emerson, PI; integrator not named",
+    "objective": "500 wellheads on RTUs, ACE, 2,000 km fibre",
+    "last_confirmed": "2025",
+    "value": null
+  },
+  {
+    "programme": "Nahr Bin Umar & Sindbad IFMS",
+    "operator": "Basra Oil Co",
+    "country": "Iraq",
+    "vendors": "Halliburton Landmark",
+    "objective": "Digital layer on field management + EPCM",
+    "last_confirmed": "Jul 2026",
+    "value": null
+  }
+]
