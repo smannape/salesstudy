@@ -1,0 +1,232 @@
+[
+ {
+  "id": "R01",
+  "risk": "Kinetic strike on central operations, HQ or hosting facility",
+  "category": "Physical / geopolitical",
+  "likelihood": 4,
+  "impact": 5,
+  "score": 20,
+  "band": "Critical",
+  "evidence": "[Certain] AWS me-central-1 (UAE) and me-south-1 (Bahrain) hit 1 Mar 2026; Bahrain region written off 16 Sep 2026. KPC HQ complex struck and evacuated 5 Apr 2026. Aramco Dhahran HQ, which houses the operations centre, evacuated 22 Oct 2026. Iranian officials state plans to cut Gulf subsea cables and target data centres if war resumes (23 Oct 2026)."
+ },
+ {
+  "id": "R02",
+  "risk": "Third-party / vendor access compromise (supply-chain entry)",
+  "category": "Cyber / OT",
+  "likelihood": 4,
+  "impact": 4,
+  "score": 16,
+  "band": "Critical",
+  "evidence": "[Certain] Every major Gulf O&G intrusion entered through a third party: Petro Rabigh 2017 (misconfigured vendor-adjacent firewall), Bapco 2019 (VPN flaw), Aramco 2021 (1 TB leaked from contractors incl. SCADA points), Halliburton Aug 2024 ($35 M charge), Nasir Security 2026 (operator data taken from engineering/fire-alarm vendors). Third parties cause 45% of energy intrusions vs 29% cross-sector."
+ },
+ {
+  "id": "R03",
+  "risk": "Legacy OT exposure: unpatched DCS/SCADA/RTUs, flat IT/OT, remote access",
+  "category": "Cyber / OT",
+  "likelihood": 4,
+  "impact": 4,
+  "score": 16,
+  "band": "Critical",
+  "evidence": "[Certain] CISA ICSA-25-205-03: Honeywell Experion PKS CVSS 9.4 unauthenticated RCE (Jul 2025). Yokogawa CENTUM VP advisory Feb 2026. CISA AA26-097A (Apr 2026): Iran-affiliated actors actively exploiting internet-facing Rockwell PLCs. Dragos 2026: O&G has the worst sector scores for vulnerability management (31%), segmentation (29%); 26% default credentials."
+ },
+ {
+  "id": "R04",
+  "risk": "Hyperscaler / cloud region unavailability",
+  "category": "Connectivity / infrastructure",
+  "likelihood": 3,
+  "impact": 5,
+  "score": 15,
+  "band": "High",
+  "evidence": "[Certain] AWS told customers to migrate out of Middle East regions (Mar 2026); UAE AZ data hosted exclusively in one zone unrecoverable. [Certain] Kuwait has no live in-country hyperscaler region (Google announced 2023, Microsoft intent 2025, neither live). Oman has only Oracle dedicated regions."
+ },
+ {
+  "id": "R05",
+  "risk": "State-sponsored destructive OT/IT attack (wiper, SIS manipulation)",
+  "category": "Cyber / OT",
+  "likelihood": 3,
+  "impact": 5,
+  "score": 15,
+  "band": "High",
+  "evidence": "[Certain] Shamoon 2012 (30,000 PCs), Shamoon 2 2016–17, Triton 2017 (Triconex SIS, two ESD trips), Dustman 2019. Dragos 2026: PYROXENE (IRGC-CEC overlap) used wipers vs critical infrastructure Jun 2025 and targets UAE; BAUXITE confirmed Middle East O&G victims. UAE CSC: 200k–800k attacks/day during 2026 war. No confirmed NOC OT disruption 2018–2026."
+ },
+ {
+  "id": "R06",
+  "risk": "Talent and nationalisation constraints on delivery",
+  "category": "People / organisation",
+  "likelihood": 5,
+  "impact": 3,
+  "score": 15,
+  "band": "High",
+  "evidence": "[Certain] EY 2025: 92% plan digital investment, 27% reskill staff. [Likely] Kuwaitis in contractor oil jobs fell 5,482 → 5,236 (Q1 2025); KPC proposes raising private-oil Kuwaitisation 30% → 60%. [Likely] UAE: AED 10,000/month per unfilled Emirati skilled role from Jul 2026. [Likely] Saudisation rates raised for engineering roles Jan 2026."
+ },
+ {
+  "id": "R07",
+  "risk": "Pilot purgatory: programme never scales past pilot",
+  "category": "Delivery / value",
+  "likelihood": 4,
+  "impact": 3,
+  "score": 12,
+  "band": "High",
+  "evidence": "[Certain] McKinsey 2022: ~70% of O&G companies not beyond pilot. Bain Sep 2026 (n=859): <20% scaling AI with measurable impact; biggest obstacle unclear link to value. Gartner: ≥30% of GenAI projects abandoned after PoC. SPE Bonga review: forecasting workflows scored 50% adoption vs 97% for allocation."
+ },
+ {
+  "id": "R08",
+  "risk": "Benefit attribution failure (uplift cannot be proven)",
+  "category": "Delivery / value",
+  "likelihood": 4,
+  "impact": 3,
+  "score": 12,
+  "band": "High",
+  "evidence": "[Certain] OGJ 2018: KwIDF North Kuwait >5% uplift \"await validation\" against decline. McKinsey 2019: one operator ran >300 initiatives with no impact tracking; dashboards unused after 6 months. Aramco's $5.3 bn and ADNOC's $500 M AI value are self-reported with no external audit."
+ },
+ {
+  "id": "R09",
+  "risk": "Data-sovereignty rules force architecture change or block cloud/AI services",
+  "category": "Regulatory / sovereignty",
+  "likelihood": 3,
+  "impact": 4,
+  "score": 12,
+  "band": "High",
+  "evidence": "[Certain] Saudi NCA CCC-2:2024 four data levels; CNI community clouds must be isolated. [Likely] UAE CSC Cloud Security Policy v2.0: Sovereign tier requires UAE-only jurisdiction, UAE-cleared personnel, in-country keys. [Likely] Kuwait CITRA: Level 3/4 data only with CITRA-licensed in-Kuwait providers. [Likely] Oman TRA: Level 3 energy data cannot leave Oman without approval. [Certain] Google Gemini not available in Oman (Jul 2026)."
+ },
+ {
+  "id": "R10",
+  "risk": "Vendor lock-in and platform M&A",
+  "category": "Vendor / supply chain",
+  "likelihood": 4,
+  "impact": 3,
+  "score": 12,
+  "band": "High",
+  "evidence": "[Certain] Schneider–Cognite $3.1 bn (Jun 2026), Cognite to fold into AVEVA CONNECT; Verdantix flags overlapping products and possible cost increases for existing customers. Emerson–AspenTech completed Mar 2025. Kongsberg Digital → Falkor Jun 2026. NOC data-ownership and escrow clauses: not public. KOC and QatarEnergy not OSDU members."
+ },
+ {
+  "id": "R11",
+  "risk": "GNSS jamming / spoofing degrades timing, drones, autonomous equipment",
+  "category": "Connectivity / infrastructure",
+  "likelihood": 4,
+  "impact": 3,
+  "score": 12,
+  "band": "High",
+  "evidence": "[Certain] >1,100 vessels with GPS/AIS interference in one day (Mar 2026); phones in UAE placed at sea; RICS: telecom timing holdover up to 25 min, ~600 jamming incidents off UAE. [Certain] Qatar halted all shipping over GPS fault Oct 2025. [Likely] Kuwait SCADA sync errors and PTP holdover alarms (consultancy report, unverified)."
+ },
+ {
+  "id": "R12",
+  "risk": "Ransomware on IT / OT-adjacent systems",
+  "category": "Cyber / OT",
+  "likelihood": 4,
+  "impact": 3,
+  "score": 12,
+  "band": "High",
+  "evidence": "[Certain] Kaspersky ICS CERT: Middle East ranks first globally for ransomware on ICS computers (Q3 2025). Dragos: 119 ransomware groups hit industrial organisations in 2025, 42-day OT dwell. Named Gulf energy claims (OQ, Special Oilfield Services) are actor claims only; no operator-confirmed NOC ransomware public."
+ },
+ {
+  "id": "R13",
+  "risk": "Oil-price and fiscal squeeze defers digital capex",
+  "category": "Commercial / financial",
+  "likelihood": 4,
+  "impact": 3,
+  "score": 12,
+  "band": "High",
+  "evidence": "[Likely] Kuwait FY2025/26 deficit KWD 7.1 bn (15% of GDP), oil revenue −30%. [Certain] Aramco Q3 2026 capex ~$10.5 bn vs ~$12.6 bn y/y. [Certain] Wood Mackenzie (Nov 2026): NOCs face more competing demands on capital and management attention. Brent swung $70–$118 in 2026."
+ },
+ {
+  "id": "R14",
+  "risk": "Counterparty payment delay / default",
+  "category": "Commercial / financial",
+  "likelihood": 3,
+  "impact": 4,
+  "score": 12,
+  "band": "High",
+  "evidence": "[Certain] Iraq accumulated arrears to contractors and IOCs during Hormuz closure; [Likely] BOC could default on GGIP phase-one payments (MEED, May 2026); Korean contractors owed ~$755 M at Karbala; Lukoil WQ-2 staff unpaid 6 weeks. GCC NOCs: no payment-default record. Likelihood is 5 for Iraq, 1–2 for GCC."
+ },
+ {
+  "id": "R15",
+  "risk": "AI model error, explainability gap, liability for autonomous control",
+  "category": "AI-specific",
+  "likelihood": 3,
+  "impact": 4,
+  "score": 12,
+  "band": "High",
+  "evidence": "[Certain] No Gulf regulator has published a position on autonomous well control; NCA OTCC covers ICS cyber only. Bahrain's draft AI law puts civil liability on machine owners. [Likely] Enverus: probabilistic models cannot flag their own errors. RoboWell runs autonomous gas-lift control on ADNOC wells with no public incident and no public well count since Jul 2024. No MENA energy AI incident on record."
+ },
+ {
+  "id": "R16",
+  "risk": "Insurance withdrawal and cyber-war exclusions",
+  "category": "Commercial / financial",
+  "likelihood": 4,
+  "impact": 3,
+  "score": 12,
+  "band": "High",
+  "evidence": "[Certain] IG P&I clubs stopped Gulf war-risk cover 5 Mar 2026; political-violence rates 0.2–0.3% → 3–10% of insured value; Middle East capacity >$1 bn → $250–350 M; Marsh: >$3 bn PV losses Mar–Jul 2026. Lloyd's has 48 cyber-war exclusion wordings; attribution to Iran can void cyber cover. Loan covenants requiring war cover can be breached without any loss."
+ },
+ {
+  "id": "R17",
+  "risk": "Regulatory compliance burden (new mandatory controls)",
+  "category": "Regulatory / sovereignty",
+  "likelihood": 5,
+  "impact": 2,
+  "score": 10,
+  "band": "High",
+  "evidence": "[Certain] Kuwait NCSC Decision 2/2026 (5 Apr 2026): mandatory National Basic Cybersecurity Controls for critical private entities incl. energy, 18 months to comply (~Oct 2027). Aramco CCC/SACS-210: all third parties need a certificate incl. an OT class, 2-year validity. Qatar NCSA joined ISASecure (Sep 2025) to drive IEC 62443. Oman strategy 2026–2030 (Aug 2026)."
+ },
+ {
+  "id": "R18",
+  "risk": "Local-content mandates constrain vendor choice and cost",
+  "category": "Regulatory / sovereignty",
+  "likelihood": 5,
+  "impact": 2,
+  "score": 10,
+  "band": "High",
+  "evidence": "[Certain] KPC: ≥30% of project spend to Kuwaiti suppliers; Kuwaitisation clause in vendor contracts. [Likely] Aramco iktva 70% achieved, 75% by 2030. [Certain] ADNOC $60 bn ICV commitment; Jereh EPC carries >80% ICV. [Certain] Oman energy ICV 31.9%, Omanisation 89%. [Likely] KOC cut approved drilling contractors 51 → 24 (Sep 2026)."
+ },
+ {
+  "id": "R19",
+  "risk": "US export controls and AI-model access interruption",
+  "category": "Vendor / supply chain",
+  "likelihood": 3,
+  "impact": 3,
+  "score": 9,
+  "band": "Medium",
+  "evidence": "[Certain] Commerce ordered Anthropic to deny non-US access to Fable/Mythos 12 Jun 2026; all non-US enterprise users cut off ~3 weeks; lifted 30 Jun. [Certain] Chip approvals (35,000 Blackwell each to G42 and HUMAIN) carried security and reporting conditions; UAE moved to Country Group A:5 Jul 2026. [Certain] Azure OpenAI retired GPT-4 Jun 2025; whether ENERGYai is pinned to a retired model is not public."
+ },
+ {
+  "id": "R20",
+  "risk": "Chinese-vendor exposure and US pressure",
+  "category": "Vendor / supply chain",
+  "likelihood": 3,
+  "impact": 3,
+  "score": 9,
+  "band": "Medium",
+  "evidence": "[Certain] Jereh $920 M ADNOC well-digitalisation EPC; Honghua AI island rigs for ADNOC Drilling and rigs for Kuwait Drilling Co; Huawei is stc's 5G partner on the Aramco enterprise network. [Certain] US supplies top chips only to Gulf states removing Chinese tech from core networks (Aug 2026); G42 removed ~$150 M of Huawei kit for the Microsoft deal. Direct pressure on Jereh/Honghua: not public."
+ },
+ {
+  "id": "R21",
+  "risk": "Subsea cable cuts / international connectivity loss",
+  "category": "Connectivity / infrastructure",
+  "likelihood": 3,
+  "impact": 3,
+  "score": 9,
+  "band": "Medium",
+  "evidence": "[Certain] Red Sea cuts Feb 2024 (Seacom, AAE-1, EIG; repairs ~5 months under Houthi permits) and Sep 2025 (SMW4, IMEWE, FALCON; Kuwait directly affected; Azure latency warnings). Hormuz carries <1% of global bandwidth but Iran names seven cables as targets. Field-to-control-room traffic is domestic; the exposure is cloud, vendor support and remote expertise."
+ },
+ {
+  "id": "R22",
+  "risk": "Sanctions on a partner or operator",
+  "category": "Commercial / financial",
+  "likelihood": 2,
+  "impact": 4,
+  "score": 8,
+  "band": "Medium",
+  "evidence": "[Certain] Lukoil SDN 22 Oct 2025 → force majeure at West Qurna-2, foreign staff contracts terminated, operatorship to BOC Feb 2026. Secondary-sanctions exposure for any vendor whose contract touches a listed entity. GCC NOC partners: no case."
+ },
+ {
+  "id": "R23",
+  "risk": "Physical environment: heat, dust, flash flooding",
+  "category": "Physical / geopolitical",
+  "likelihood": 3,
+  "impact": 2,
+  "score": 6,
+  "band": "Medium",
+  "evidence": "[Certain] Dubai 142 mm in 24 h Apr 2024 (record since 1949), power and water outages; UAE 51.8 °C Aug 2025; MENA warming 2–3× global. Field-electronics failure rates in Gulf conditions: not public."
+ }
+]

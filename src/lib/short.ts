@@ -11,7 +11,8 @@ const SHORT: Record<string, string> = {
   'running-the-cycle': 'Running the cycle',
   'metrics': 'Metrics',
   'revenue-models': 'Revenue models',
-  'digital-landscape-mena': 'Digital MENA'
+  'digital-landscape-mena': 'Digital MENA',
+  'digital-risk': 'Digital risk'
 };
 
 export const shortTitle = (slug: string) => SHORT[slug] ?? slug;

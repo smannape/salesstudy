@@ -12,7 +12,7 @@ const LANES = [
   { id: 'foundations', name: 'Foundations', sub: 'How selling works in software and in OFS', slugs: ['how-software-sales-work', 'how-ofs-sales-work'] },
   { id: 'account', name: 'Account & offer', sub: 'Who to target, who holds what, what to say, how to price', slugs: ['target-a-client', 'digital-landscape-mena', 'keywords', 'revenue-models'] },
   { id: 'deal', name: 'Run the deal', sub: 'Stages, execution and the internal sell', slugs: ['sales-cycle', 'running-the-cycle', 'sell-internally'] },
-  { id: 'grow', name: 'Measure & grow', sub: 'Forecasting, adoption and long-term plans', slugs: ['metrics', 'increase-software-sales-ep', 'long-term-strategy'] }
+  { id: 'grow', name: 'Measure & grow', sub: 'Forecasting, adoption, long-term plans and risk', slugs: ['metrics', 'increase-software-sales-ep', 'long-term-strategy', 'digital-risk'] }
 ];
 
 // Documented = an actual link in one page's Markdown to another. Inferred = shared concepts, no link.
@@ -34,7 +34,9 @@ const INF: [string, string, string][] = [
   ['increase-software-sales-ep', 'revenue-models', 'scaling changes the contract shape'],
   ['metrics', 'running-the-cycle', 'POC success and technical win rate'],
   ['target-a-client', 'digital-landscape-mena', 'which vendor already holds each NOC programme'],
-  ['revenue-models', 'digital-landscape-mena', 'contract generations shape what gets priced']
+  ['revenue-models', 'digital-landscape-mena', 'contract generations shape what gets priced'],
+  ['digital-risk', 'digital-landscape-mena', 'risks are scored against these programmes'],
+  ['digital-risk', 'how-ofs-sales-work', 'cyber certification and local-content gates']
 ];
 
 const W = 1000, LANE_H = 140, TOP = 8, BW = 210, BH = 56;
@@ -79,11 +81,11 @@ const wrap = (s: string, n = 26) => {
   return [s.slice(0, cut), s.slice(cut + 1)];
 };
 ---
-<Base title="Overview" description="How the twelve Sales Hub reference pages relate, layer by layer.">
+<Base title="Overview" description="How the thirteen Sales Hub reference pages relate, layer by layer.">
   <header class="page-head">
-    <div class="eyebrow">00 — Overview · As of 31 Oct 2026</div>
+    <div class="eyebrow">00 — Overview · As of 3 Nov 2026</div>
     <h1>How the pages relate</h1>
-    <p class="lede">Twelve reference pages on selling E&amp;P software to Gulf NOCs. The chart shows what builds on what, layer by layer: foundations at the top, measuring and growing at the bottom.</p>
+    <p class="lede">Thirteen reference pages on selling E&amp;P software to Gulf NOCs. The chart shows what builds on what, layer by layer: foundations at the top, measuring and growing at the bottom.</p>
   </header>
 
   <div class="stats">

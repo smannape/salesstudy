@@ -1,0 +1,237 @@
+---
+import risks from '../../data/mena-risks.json';
+
+const BAND = (s: number) => (s >= 16 ? 'critical' : s >= 10 ? 'high' : s >= 5 ? 'medium' : 'low');
+const IMPACT = ['Negligible', 'Minor', 'Moderate', 'Major', 'Catastrophic'];
+const LIKE = ['Rare', 'Unlikely', 'Possible', 'Likely', 'Near certain'];
+const CATS = [...new Set(risks.map((r) => r.category))];
+const SHORT: Record<string, string> = {
+  'Physical / geopolitical': 'Physical', 'Cyber / OT': 'Cyber / OT', 'Connectivity / infrastructure': 'Connectivity',
+  'Delivery / value': 'Delivery', 'People / organisation': 'People', 'Regulatory / sovereignty': 'Regulatory',
+  'Vendor / supply chain': 'Vendor', 'Commercial / financial': 'Commercial', 'AI-specific': 'AI'
+};
+// From the page's country exposure table: which risks the evidence raises or lowers per country.
+const COUNTRY: Record<string, { up: string[]; down: string[]; note: string }> = {
+  Kuwait: { up: ['R04', 'R06', 'R13', 'R17', 'R01'], down: [], note: 'No in-country hyperscaler region; NBCC deadline Oct 2027; KPC declared force majeure 7 Mar 2026.' },
+  UAE: { up: ['R09', 'R20', 'R01'], down: ['R04', 'R19'], note: 'Sovereign cloud tier; Azure, AWS and Oracle live; Country Group A:5 since Jul 2026.' },
+  'Saudi Arabia': { up: ['R02', 'R18', 'R01'], down: ['R04'], note: 'Aramco CCC applies to every vendor; iktva 75%; Aramco part-owns the sovereign AI cloud.' },
+  Qatar: { up: ['R01', 'R11'], down: [], note: 'Ras Laffan 17% capacity lost, 3–5 year repairs; Oct 2025 GPS shipping halt.' },
+  Oman: { up: ['R09'], down: ['R01', 'R14'], note: 'TRA Level 3 energy data cannot leave Oman; no public hyperscaler region.' },
+  Iraq: { up: ['R14', 'R22', 'R01'], down: [], note: 'Arrears and crude-for-payment; Lukoil sanctions; force majeure on IOC fields 17 Mar 2026.' },
+  Bahrain: { up: ['R01', 'R04', 'R02'], down: [], note: 'AWS Bahrain region written off; Dustman precedent; Bapco force majeure 7 Mar 2026.' }
+};
+const counts = { critical: 0, high: 0, medium: 0, low: 0 } as Record<string, number>;
+risks.forEach((r) => counts[BAND(r.score)]++);
+const ranked = [...risks].sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
+---
+<section class="viz" aria-labelledby="risk-title" data-risk>
+  <div class="viz-head">
+    <h2 id="risk-title">Likelihood × impact</h2>
+    <p class="viz-hint">Tap a risk for its evidence; filter by category or overlay a country.</p>
+  </div>
+
+  <div class="rk-stats">
+    <div><b class="num">{risks.length}</b><span>Risks scored</span></div>
+    <div class="b-critical"><b class="num">{counts.critical}</b><span>Critical ≥16</span></div>
+    <div class="b-high"><b class="num">{counts.high}</b><span>High 10–15</span></div>
+    <div class="b-medium"><b class="num">{counts.medium}</b><span>Medium 5–9</span></div>
+  </div>
+
+  <div class="viz-controls">
+    <div class="seg" role="group" aria-label="Filter by category">
+      <button type="button" aria-pressed="true" data-cat="all">All</button>
+      {CATS.map((c) => <button type="button" aria-pressed="false" data-cat={c}>{SHORT[c] ?? c}</button>)}
+    </div>
+  </div>
+  <div class="viz-controls">
+    <div class="seg" role="group" aria-label="Country overlay">
+      <button type="button" aria-pressed="true" data-country="">Regional</button>
+      {Object.keys(COUNTRY).map((c) => <button type="button" aria-pressed="false" data-country={c}>{c}</button>)}
+    </div>
+  </div>
+
+  <div class="rk-layout">
+    <div class="viz-stage rk-stage">
+      <div class="rk-matrix" role="grid" aria-label="Risk matrix: impact rows, likelihood columns">
+        <span class="rk-ylab" aria-hidden="true">Impact ↑</span>
+        {[5, 4, 3, 2, 1].map((imp) => (
+          <>
+            <span class="rk-rowh"><b>{imp}</b><small>{IMPACT[imp - 1]}</small></span>
+            {[1, 2, 3, 4, 5].map((lik) => (
+              <div class={`rk-cell b-${BAND(lik * imp)}`} role="gridcell" aria-label={`Impact ${imp}, likelihood ${lik}, score ${lik * imp}`}>
+                <span class="rk-score num" aria-hidden="true">{lik * imp}</span>
+                {risks.filter((r) => r.likelihood === lik && r.impact === imp).map((r) => (
+                  <button type="button" class="rk-chip" data-id={r.id} data-cat={r.category} aria-pressed="false" title={r.risk}>{r.id}<i aria-hidden="true"></i></button>
+                ))}
+              </div>
+            ))}
+          </>
+        ))}
+        <span></span>
+        {LIKE.map((l, i) => <span class="rk-colh"><b>{i + 1}</b>{l}</span>)}
+        <span></span><span class="rk-xlab" aria-hidden="true">Likelihood →</span>
+      </div>
+    </div>
+    <div class="viz-readout rk-readout" aria-live="polite" data-readout>
+      <p>The critical corner holds one physical risk and two cyber risks that share a root cause: remote access into field systems by people and machines outside the NOC's perimeter.</p>
+      <p class="small muted">The score-12 band is where programmes actually die, from unproven value, lock-in, missing people and deferred budget.</p>
+    </div>
+  </div>
+
+  <div class="viz-legend">
+    <span><i style="background:var(--red-soft);box-shadow:inset 0 0 0 1px var(--red)"></i>Critical</span>
+    <span><i style="background:var(--amber-soft);box-shadow:inset 0 0 0 1px var(--amber)"></i>High</span>
+    <span><i style="background:var(--paper-3)"></i>Medium</span>
+    <span><i style="background:var(--paper-2);box-shadow:inset 0 0 0 1px var(--rule)"></i>Low</span>
+    <span class="rk-mobile-key">Rows: impact 5 catastrophic → 1 negligible</span>
+    <span data-country-legend hidden>▲ raised · ▼ lowered for the selected country (not re-scored)</span>
+  </div>
+  <p class="small muted rk-note" data-country-note hidden></p>
+</section>
+
+<section class="viz" aria-labelledby="rank-title">
+  <div class="viz-head">
+    <h2 id="rank-title">All 23, ranked by score</h2>
+    <p class="viz-hint">Same selection as the matrix above.</p>
+  </div>
+  <ol class="rk-rank">
+    {ranked.map((r) => (
+      <li data-cat={r.category}>
+        <button type="button" class="rk-bar" data-id={r.id} aria-pressed="false">
+          <span class="rk-id num">{r.id}</span>
+          <span class="rk-name">{r.risk}</span>
+          <span class="rk-track"><i class={`b-${BAND(r.score)}`} style={`width:${(r.score / 25) * 100}%`}></i></span>
+          <span class="rk-val num">{r.score}<em>{r.likelihood}×{r.impact}</em></span>
+        </button>
+      </li>
+    ))}
+  </ol>
+</section>
+
+<script type="application/json" id="risk-data" set:html={JSON.stringify({ risks, country: COUNTRY })}></script>
+
+<style>
+  .b-critical { --band: var(--red-soft); --band-ink: var(--red); }
+  .b-high { --band: var(--amber-soft); --band-ink: var(--amber); }
+  .b-medium { --band: var(--paper-3); --band-ink: var(--ink-2); }
+  .b-low { --band: var(--paper-2); --band-ink: var(--ink-3); }
+
+  .rk-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--rule); border-right: 0; margin-bottom: 14px; }
+  .rk-stats div { padding: 12px 14px; border-right: 1px solid var(--rule); background: var(--paper-2); }
+  .rk-stats div[class] { box-shadow: inset 0 3px 0 var(--band-ink); }
+  .rk-stats b { display: block; font: 600 28px/1 var(--display); letter-spacing: -.02em; }
+  .rk-stats span { display: block; margin-top: 8px; font: 500 10.5px/1.3 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
+  @media (max-width: 559px) { .rk-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .rk-stats div { border-bottom: 1px solid var(--rule); } }
+
+  .rk-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr); align-items: stretch; }
+  .rk-layout .rk-readout { border-top: 1px solid var(--rule-strong); border-left: 0; }
+  @media (max-width: 899px) { .rk-layout { grid-template-columns: minmax(0, 1fr); } .rk-layout .rk-readout { border-left: 1px solid var(--rule-strong); border-top: 0; } }
+  .rk-stage { padding: 14px; }
+  .rk-matrix { display: grid; grid-template-columns: 92px repeat(5, minmax(0, 1fr)); gap: 3px; }
+  .rk-cell { min-height: 76px; background: var(--band); box-shadow: inset 0 0 0 1px var(--rule); padding: 18px 5px 5px; position: relative; display: flex; flex-wrap: wrap; gap: 4px; align-content: flex-start; }
+  .rk-cell.b-critical, .rk-cell.b-high { box-shadow: inset 0 0 0 1px var(--band-ink); }
+  .rk-score { position: absolute; top: 4px; right: 6px; font: 400 10px var(--mono); color: var(--band-ink); }
+  .rk-rowh, .rk-colh { font: 500 10px/1.25 var(--mono); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-2); }
+  .rk-rowh { display: flex; flex-direction: column; justify-content: center; padding-right: 6px; }
+  .rk-colh { text-align: center; padding-top: 6px; }
+  .rk-rowh b, .rk-colh b { display: block; font: 600 15px var(--display); color: var(--ink); letter-spacing: 0; }
+  .rk-ylab, .rk-xlab { font: 500 10px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+  .rk-ylab { grid-column: 1 / -1; }
+  .rk-xlab { grid-column: 2 / -1; text-align: right; }
+  .rk-chip { position: relative; min-width: 40px; min-height: 28px; padding: 0 6px; border: 1px solid var(--ink); background: var(--paper-2); color: var(--ink); font: 500 11px var(--mono); cursor: pointer; transition: opacity var(--dur) var(--ease), background var(--dur) var(--ease); }
+  .rk-chip:hover { border-color: var(--accent); color: var(--accent); }
+  .rk-chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .rk-chip.is-dim { opacity: .2; }
+  .rk-chip i { position: absolute; top: -8px; right: -6px; font: 700 11px/1 var(--sans); font-style: normal; }
+  .rk-chip.up i::before { content: "▲"; color: var(--red); }
+  .rk-chip.down i::before { content: "▼"; color: var(--green); }
+  @media (pointer: coarse) { .rk-chip { min-height: 40px; } }
+  @media (max-width: 559px) {
+    .rk-stage { padding: 8px; }
+    .rk-matrix { grid-template-columns: 22px repeat(5, minmax(0, 1fr)); gap: 2px; }
+    .rk-rowh small { display: none; }
+    .rk-colh { font-size: 8px; }
+    .rk-cell { min-height: 60px; padding: 14px 2px 3px; gap: 3px; }
+    .rk-chip { min-width: 0; width: 100%; padding: 0 2px; font-size: 10px; }
+  }
+  .rk-rowh small { font-size: inherit; }
+  .rk-mobile-key { display: none; }
+  @media (max-width: 559px) { .rk-mobile-key { display: inline; } }
+  .rk-readout { min-height: 180px; }
+  .rk-readout .ev { font-size: 14px; line-height: 1.55; }
+  .rk-note { margin: 0; padding: 8px 0 0; }
+
+  .rk-rank { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
+  .rk-rank li { border-bottom: 1px solid var(--rule); margin: 0; }
+  .rk-rank li.is-dim { opacity: .3; }
+  .rk-bar { width: 100%; display: grid; grid-template-columns: 40px minmax(0, 1.6fr) minmax(90px, 1fr) 64px; gap: 14px; align-items: center; min-height: 40px; padding: 4px 0; border: 0; background: none; color: var(--ink); text-align: left; cursor: pointer; transition: background var(--dur) var(--ease); }
+  .rk-bar:hover { background: var(--paper-2); }
+  .rk-bar[aria-pressed="true"] { background: var(--accent-soft); }
+  .rk-id { font: 500 11px var(--mono); color: var(--ink-2); padding-left: 4px; }
+  .rk-name { font-size: 14px; line-height: 1.3; }
+  .rk-track { height: 10px; background: var(--paper-3); position: relative; }
+  .rk-track i { position: absolute; inset: 0 auto 0 0; background: var(--band-ink); }
+  .rk-val { font: 600 14px var(--mono); text-align: right; padding-right: 4px; }
+  .rk-val em { display: block; font: 400 10px var(--mono); font-style: normal; color: var(--ink-3); }
+  @media (max-width: 599px) {
+    .rk-bar { grid-template-columns: 36px minmax(0, 1fr) 48px; row-gap: 6px; padding: 8px 0; min-height: 44px; }
+    .rk-track { grid-column: 2 / 4; grid-row: 2; }
+  }
+</style>
+
+<script>
+  type Risk = { id: string; risk: string; category: string; likelihood: number; impact: number; score: number; band: string; evidence: string };
+  const { risks, country } = JSON.parse(document.getElementById('risk-data')!.textContent!) as {
+    risks: Risk[]; country: Record<string, { up: string[]; down: string[]; note: string }>;
+  };
+  const byId = new Map(risks.map((r) => [r.id, r]));
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+  const TAG: Record<string, string> = { Certain: 'tag success', Likely: 'tag', Guessing: 'tag danger' };
+  const tagged = (s: string) => esc(s).replace(/\[(Certain|Likely|Guessing)\]/g, (_, t) => `<span class="${TAG[t]}">${t.toLowerCase()}</span>`);
+
+  const root = document.querySelector<HTMLElement>('[data-risk]')!;
+  const readout = root.querySelector<HTMLElement>('[data-readout]')!;
+  const pickers = Array.from(document.querySelectorAll<HTMLButtonElement>('.rk-chip, .rk-bar'));
+  const chips = pickers.filter((b) => b.classList.contains('rk-chip'));
+  const rankRows = Array.from(document.querySelectorAll<HTMLLIElement>('.rk-rank li'));
+  let ctry = '';
+
+  const select = (id: string) => {
+    pickers.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.id === id)));
+    const r = byId.get(id)!;
+    const c = ctry ? country[ctry] : null;
+    const adj = c?.up.includes(id) ? `<p class="small"><strong>${esc(ctry)}:</strong> the evidence raises this risk's likelihood.</p>`
+      : c?.down.includes(id) ? `<p class="small"><strong>${esc(ctry)}:</strong> the evidence lowers this risk's likelihood.</p>` : '';
+    readout.innerHTML = `<div class="eyebrow">${r.id} · ${esc(r.category)} · L${r.likelihood} × I${r.impact} = ${r.score} · ${esc(r.band)}</div>
+      <h3>${esc(r.risk)}</h3>${adj}<p class="ev">${tagged(r.evidence)}</p>`;
+  };
+  pickers.forEach((b) => b.addEventListener('click', () => {
+    select(b.dataset.id!);
+    if (b.classList.contains('rk-bar') && matchMedia('(max-width: 899px)').matches) readout.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }));
+
+  const catBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-cat]')).filter((b) => b.tagName === 'BUTTON' && !b.classList.contains('rk-chip'));
+  catBtns.forEach((b) => b.addEventListener('click', () => {
+    catBtns.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    const cat = b.dataset.cat!;
+    chips.forEach((c) => c.classList.toggle('is-dim', cat !== 'all' && c.dataset.cat !== cat));
+    rankRows.forEach((li) => li.classList.toggle('is-dim', cat !== 'all' && li.dataset.cat !== cat));
+  }));
+
+  const ctryBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-country]'));
+  const legend = root.querySelector<HTMLElement>('[data-country-legend]')!;
+  const note = root.querySelector<HTMLElement>('[data-country-note]')!;
+  ctryBtns.forEach((b) => b.addEventListener('click', () => {
+    ctryBtns.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    ctry = b.dataset.country!;
+    const c = ctry ? country[ctry] : null;
+    chips.forEach((ch) => {
+      ch.classList.toggle('up', !!c?.up.includes(ch.dataset.id!));
+      ch.classList.toggle('down', !!c?.down.includes(ch.dataset.id!));
+    });
+    legend.hidden = note.hidden = !c;
+    note.textContent = c ? `${ctry}: ${c.note}` : '';
+    const sel = pickers.find((p) => p.getAttribute('aria-pressed') === 'true');
+    if (sel) select(sel.dataset.id!);
+  }));
+</script>
